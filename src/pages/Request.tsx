@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { format, addDays, subDays, parseISO, isWithinInterval } from "date-fns";
+import { CheckCircle, ArrowLeft } from "lucide-react";
+
+interface BookedPeriod {
+  pickup_datetime: string;
+  return_datetime: string;
+  machine_unit: string;
+}
 
 const Request = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [bookedPeriods, setBookedPeriods] = useState<BookedPeriod[]>([]);
   const [formData, setFormData] = useState({
     employeeName: "",
     department: "",
@@ -33,8 +42,90 @@ const Request = () => {
     specialRequirements: "",
   });
 
+  // Fetch confirmed bookings to check availability
+  useEffect(() => {
+    const fetchBookedPeriods = async () => {
+      const { data } = await supabase
+        .from("skin_check_requests")
+        .select("pickup_datetime, return_datetime, machine_unit")
+        .in("request_status", ["Approved", "Pending"]);
+      
+      if (data) {
+        setBookedPeriods(data);
+      }
+    };
+    fetchBookedPeriods();
+  }, []);
+
+  // Tomorrow's date for minimum event start date
+  const tomorrow = useMemo(() => {
+    const date = addDays(new Date(), 1);
+    return format(date, "yyyy-MM-dd");
+  }, []);
+
+  // Calculate min/max dates based on event dates
+  const pickupMinDate = useMemo(() => {
+    if (!formData.eventStartDate) return tomorrow;
+    const eventStart = parseISO(formData.eventStartDate);
+    const minPickup = subDays(eventStart, 1);
+    return format(minPickup, "yyyy-MM-dd");
+  }, [formData.eventStartDate, tomorrow]);
+
+  const pickupMaxDate = useMemo(() => {
+    if (!formData.eventStartDate) return "";
+    const eventStart = parseISO(formData.eventStartDate);
+    const maxPickup = subDays(eventStart, 1);
+    return format(maxPickup, "yyyy-MM-dd");
+  }, [formData.eventStartDate]);
+
+  const returnMinDate = useMemo(() => {
+    if (!formData.eventEndDate) return "";
+    const eventEnd = parseISO(formData.eventEndDate);
+    const minReturn = addDays(eventEnd, 1);
+    return format(minReturn, "yyyy-MM-dd");
+  }, [formData.eventEndDate]);
+
+  const returnMaxDate = useMemo(() => {
+    if (!formData.eventEndDate) return "";
+    const eventEnd = parseISO(formData.eventEndDate);
+    const maxReturn = addDays(eventEnd, 1);
+    return format(maxReturn, "yyyy-MM-dd");
+  }, [formData.eventEndDate]);
+
+  // Check if pickup date conflicts with existing bookings
+  const isDateAvailable = (pickupDate: string, returnDate: string, machineUnit: string): boolean => {
+    if (!pickupDate || !returnDate || !machineUnit) return true;
+    
+    const pickup = parseISO(pickupDate);
+    const returnD = parseISO(returnDate);
+    
+    for (const booking of bookedPeriods) {
+      if (booking.machine_unit !== machineUnit) continue;
+      
+      const bookedPickup = parseISO(booking.pickup_datetime);
+      const bookedReturn = parseISO(booking.return_datetime);
+      
+      // Check if there's any overlap
+      if (
+        isWithinInterval(pickup, { start: bookedPickup, end: bookedReturn }) ||
+        isWithinInterval(returnD, { start: bookedPickup, end: bookedReturn }) ||
+        isWithinInterval(bookedPickup, { start: pickup, end: returnD })
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate date availability
+    if (!isDateAvailable(formData.pickupDateTime, formData.returnDateTime, formData.machineUnit)) {
+      toast.error("Selected dates conflict with an existing booking. Please choose different dates.");
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -68,8 +159,8 @@ const Request = () => {
         body: { requestId, ...formData },
       });
 
-      toast.success("Request submitted successfully! You'll receive a confirmation email.");
-      navigate("/");
+      toast.success("Request submitted successfully!");
+      setSubmitted(true);
     } catch (error: any) {
       toast.error(error.message || "Failed to submit request");
     } finally {
@@ -80,6 +171,73 @@ const Request = () => {
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Reset dependent fields when event dates change
+  const handleEventStartChange = (value: string) => {
+    updateField("eventStartDate", value);
+    updateField("pickupDateTime", "");
+    updateField("eventEndDate", "");
+    updateField("returnDateTime", "");
+  };
+
+  const handleEventEndChange = (value: string) => {
+    updateField("eventEndDate", value);
+    updateField("returnDateTime", "");
+  };
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
+        <Card className="glass-effect shadow-2xl max-w-md w-full">
+          <CardContent className="pt-8 pb-8 text-center space-y-6">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Request Submitted!</h2>
+              <p className="text-muted-foreground">
+                Your request has been submitted successfully. You'll receive a confirmation email shortly.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Button asChild variant="default" className="w-full">
+                <Link to="/">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  setSubmitted(false);
+                  setFormData({
+                    employeeName: "",
+                    department: "",
+                    position: "",
+                    phoneNumber: "",
+                    email: "",
+                    eventName: "",
+                    location: "",
+                    expectedUsers: "",
+                    pickupDateTime: "",
+                    returnDateTime: "",
+                    eventStartDate: "",
+                    eventEndDate: "",
+                    machineUnit: "",
+                    informTo: "",
+                    usedBefore: "No",
+                    needTraining: "Yes",
+                    specialRequirements: "",
+                  });
+                }}
+              >
+                Submit Another Request
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-bg py-8 px-4">
@@ -142,22 +300,69 @@ const Request = () => {
               {/* Section 3: Booking Schedule */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-accent">3. Booking Schedule</h3>
+                <p className="text-sm text-muted-foreground">
+                  Select event dates first. Pickup is 1 day before event start, return is 1 day after event end.
+                </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="pickupDateTime" className="required">Pickup Date & Time</Label>
-                    <Input id="pickupDateTime" type="datetime-local" value={formData.pickupDateTime} onChange={(e) => updateField("pickupDateTime", e.target.value)} required />
-                  </div>
-                  <div>
-                    <Label htmlFor="returnDateTime" className="required">Return Date & Time</Label>
-                    <Input id="returnDateTime" type="datetime-local" value={formData.returnDateTime} onChange={(e) => updateField("returnDateTime", e.target.value)} required />
-                  </div>
-                  <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
-                    <Input id="eventStartDate" type="date" value={formData.eventStartDate} onChange={(e) => updateField("eventStartDate", e.target.value)} required />
+                    <Input 
+                      id="eventStartDate" 
+                      type="date" 
+                      value={formData.eventStartDate} 
+                      onChange={(e) => handleEventStartChange(e.target.value)} 
+                      min={tomorrow}
+                      required 
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Must be from tomorrow onwards</p>
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
-                    <Input id="eventEndDate" type="date" value={formData.eventEndDate} onChange={(e) => updateField("eventEndDate", e.target.value)} required />
+                    <Input 
+                      id="eventEndDate" 
+                      type="date" 
+                      value={formData.eventEndDate} 
+                      onChange={(e) => handleEventEndChange(e.target.value)} 
+                      min={formData.eventStartDate || tomorrow}
+                      disabled={!formData.eventStartDate}
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="pickupDateTime" className="required">Pickup Date & Time</Label>
+                    <Input 
+                      id="pickupDateTime" 
+                      type="datetime-local" 
+                      value={formData.pickupDateTime} 
+                      onChange={(e) => updateField("pickupDateTime", e.target.value)} 
+                      min={pickupMinDate ? `${pickupMinDate}T00:00` : undefined}
+                      max={pickupMaxDate ? `${pickupMaxDate}T23:59` : undefined}
+                      disabled={!formData.eventStartDate}
+                      required 
+                    />
+                    {formData.eventStartDate && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Available: {pickupMinDate}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="returnDateTime" className="required">Return Date & Time</Label>
+                    <Input 
+                      id="returnDateTime" 
+                      type="datetime-local" 
+                      value={formData.returnDateTime} 
+                      onChange={(e) => updateField("returnDateTime", e.target.value)} 
+                      min={returnMinDate ? `${returnMinDate}T00:00` : undefined}
+                      max={returnMaxDate ? `${returnMaxDate}T23:59` : undefined}
+                      disabled={!formData.eventEndDate}
+                      required 
+                    />
+                    {formData.eventEndDate && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Available: {returnMinDate}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
