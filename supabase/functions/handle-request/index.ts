@@ -39,12 +39,12 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Processing request:", data.requestId);
 
     // Send email to admin
-    const adminEmail = data.informTo === "YGN-Admin" ? "admin-ygn@example.com" : "admin-mdy@example.com";
+    const adminEmail = data.informTo === "YGN-Admin" ? "flowlocreative@gmail.com" : "drmozzgaming@gmail.com";
     
     const reviewUrl = `${Deno.env.get("SUPABASE_URL")}/admin/review/${data.requestId}`;
 
     const emailResponse = await resend.emails.send({
-      from: "Skin Check Request <onboarding@resend.dev>",
+      from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
       to: [adminEmail],
       subject: `New Request: ${data.requestId} - ${data.eventName}`,
       html: `
@@ -100,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation to requester
     await resend.emails.send({
-      from: "Skin Check Request <onboarding@resend.dev>",
+      from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
       to: [data.email],
       subject: `Request Confirmation: ${data.requestId}`,
       html: `
