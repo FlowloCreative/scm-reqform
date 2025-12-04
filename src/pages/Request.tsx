@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { format, addDays, subDays, parseISO, isWithinInterval } from "date-fns";
+import { format, addDays, subDays, parseISO, isWithinInterval, startOfDay } from "date-fns";
 import { CheckCircle, ArrowLeft } from "lucide-react";
+import { DatePickerWithBookings } from "@/components/DatePickerWithBookings";
 
 interface BookedPeriod {
   pickup_datetime: string;
@@ -57,25 +58,12 @@ const Request = () => {
     fetchBookedPeriods();
   }, []);
 
-  // Tomorrow's date for minimum event start date
-  const tomorrow = useMemo(() => {
-    const date = addDays(new Date(), 1);
-    return format(date, "yyyy-MM-dd");
-  }, []);
-
   // Calculate min/max dates based on event dates
   const pickupMinDate = useMemo(() => {
-    if (!formData.eventStartDate) return tomorrow;
+    if (!formData.eventStartDate) return "";
     const eventStart = parseISO(formData.eventStartDate);
     const minPickup = subDays(eventStart, 1);
     return format(minPickup, "yyyy-MM-dd");
-  }, [formData.eventStartDate, tomorrow]);
-
-  const pickupMaxDate = useMemo(() => {
-    if (!formData.eventStartDate) return "";
-    const eventStart = parseISO(formData.eventStartDate);
-    const maxPickup = subDays(eventStart, 1);
-    return format(maxPickup, "yyyy-MM-dd");
   }, [formData.eventStartDate]);
 
   const returnMinDate = useMemo(() => {
@@ -85,25 +73,19 @@ const Request = () => {
     return format(minReturn, "yyyy-MM-dd");
   }, [formData.eventEndDate]);
 
-  const returnMaxDate = useMemo(() => {
-    if (!formData.eventEndDate) return "";
-    const eventEnd = parseISO(formData.eventEndDate);
-    const maxReturn = addDays(eventEnd, 1);
-    return format(maxReturn, "yyyy-MM-dd");
-  }, [formData.eventEndDate]);
 
   // Check if pickup date conflicts with existing bookings
   const isDateAvailable = (pickupDate: string, returnDate: string, machineUnit: string): boolean => {
     if (!pickupDate || !returnDate || !machineUnit) return true;
     
-    const pickup = parseISO(pickupDate);
-    const returnD = parseISO(returnDate);
+    const pickup = startOfDay(parseISO(pickupDate));
+    const returnD = startOfDay(parseISO(returnDate));
     
     for (const booking of bookedPeriods) {
       if (booking.machine_unit !== machineUnit) continue;
       
-      const bookedPickup = parseISO(booking.pickup_datetime);
-      const bookedReturn = parseISO(booking.return_datetime);
+      const bookedPickup = startOfDay(parseISO(booking.pickup_datetime));
+      const bookedReturn = startOfDay(parseISO(booking.return_datetime));
       
       // Check if there's any overlap
       if (
@@ -306,39 +288,39 @@ const Request = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
-                    <Input 
-                      id="eventStartDate" 
-                      type="date" 
-                      value={formData.eventStartDate} 
-                      onChange={(e) => handleEventStartChange(e.target.value)} 
-                      min={tomorrow}
-                      required 
+                    <DatePickerWithBookings
+                      value={formData.eventStartDate}
+                      onChange={(date) => handleEventStartChange(date)}
+                      bookedPeriods={bookedPeriods}
+                      machineUnit={formData.machineUnit}
+                      minDate={addDays(new Date(), 1)}
+                      placeholder="Select event start date"
                     />
                     <p className="text-xs text-muted-foreground mt-1">Must be from tomorrow onwards</p>
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
-                    <Input 
-                      id="eventEndDate" 
-                      type="date" 
-                      value={formData.eventEndDate} 
-                      onChange={(e) => handleEventEndChange(e.target.value)} 
-                      min={formData.eventStartDate || tomorrow}
+                    <DatePickerWithBookings
+                      value={formData.eventEndDate}
+                      onChange={(date) => handleEventEndChange(date)}
+                      bookedPeriods={bookedPeriods}
+                      machineUnit={formData.machineUnit}
+                      minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 1)}
                       disabled={!formData.eventStartDate}
-                      required 
+                      placeholder="Select event end date"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="pickupDateTime" className="required">Pickup Date & Time</Label>
-                    <Input 
-                      id="pickupDateTime" 
-                      type="datetime-local" 
-                      value={formData.pickupDateTime} 
-                      onChange={(e) => updateField("pickupDateTime", e.target.value)} 
-                      min={pickupMinDate ? `${pickupMinDate}T00:00` : undefined}
-                      max={pickupMaxDate ? `${pickupMaxDate}T23:59` : undefined}
+                    <Label htmlFor="pickupDateTime" className="required">Pickup Date</Label>
+                    <DatePickerWithBookings
+                      value={formData.pickupDateTime}
+                      onChange={(date) => updateField("pickupDateTime", date)}
+                      bookedPeriods={bookedPeriods}
+                      machineUnit={formData.machineUnit}
+                      minDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined}
+                      maxDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined}
                       disabled={!formData.eventStartDate}
-                      required 
+                      placeholder="Select pickup date"
                     />
                     {formData.eventStartDate && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -347,16 +329,16 @@ const Request = () => {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="returnDateTime" className="required">Return Date & Time</Label>
-                    <Input 
-                      id="returnDateTime" 
-                      type="datetime-local" 
-                      value={formData.returnDateTime} 
-                      onChange={(e) => updateField("returnDateTime", e.target.value)} 
-                      min={returnMinDate ? `${returnMinDate}T00:00` : undefined}
-                      max={returnMaxDate ? `${returnMaxDate}T23:59` : undefined}
+                    <Label htmlFor="returnDateTime" className="required">Return Date</Label>
+                    <DatePickerWithBookings
+                      value={formData.returnDateTime}
+                      onChange={(date) => updateField("returnDateTime", date)}
+                      bookedPeriods={bookedPeriods}
+                      machineUnit={formData.machineUnit}
+                      minDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined}
+                      maxDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined}
                       disabled={!formData.eventEndDate}
-                      required 
+                      placeholder="Select return date"
                     />
                     {formData.eventEndDate && (
                       <p className="text-xs text-muted-foreground mt-1">
