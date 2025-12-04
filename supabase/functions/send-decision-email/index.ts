@@ -3,6 +3,18 @@ import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// HTML escape function to prevent injection
+const escapeHtml = (str: string | undefined | null): string => {
+  if (!str) return "";
+  return str.replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[c] || c));
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -31,21 +43,21 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
       to: [data.email],
-      subject: `Request ${data.status}: ${data.requestId}`,
+      subject: `Request ${escapeHtml(data.status)}: ${escapeHtml(data.requestId)}`,
       html: `
         <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <h1 style="color: white; margin: 0;">Request ${data.status}</h1>
+            <h1 style="color: white; margin: 0;">Request ${escapeHtml(data.status)}</h1>
           </div>
           
           <div style="padding: 30px; background: #f9fafb; border-radius: 0 0 10px 10px;">
-            <p>Dear ${data.employeeName},</p>
+            <p>Dear ${escapeHtml(data.employeeName)},</p>
             
             <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
               <h2 style="margin-top: 0; color: ${statusColor};">
-                Your request ${data.requestId} has been ${data.status.toLowerCase()}
+                Your request ${escapeHtml(data.requestId)} has been ${escapeHtml(data.status.toLowerCase())}
               </h2>
-              ${data.adminNotes ? `<p><strong>Admin Notes:</strong><br>${data.adminNotes}</p>` : ""}
+              ${data.adminNotes ? `<p><strong>Admin Notes:</strong><br>${escapeHtml(data.adminNotes)}</p>` : ""}
             </div>
             
             ${isApproved ? `

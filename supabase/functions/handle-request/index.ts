@@ -3,6 +3,18 @@ import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// HTML escape function to prevent injection
+const escapeHtml = (str: string | undefined | null): string => {
+  if (!str) return "";
+  return str.replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[c] || c));
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -46,42 +58,42 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
       to: [adminEmail],
-      subject: `New Request: ${data.requestId} - ${data.eventName}`,
+      subject: `New Request: ${escapeHtml(data.requestId)} - ${escapeHtml(data.eventName)}`,
       html: `
         <h1>New Skin Check Machine Request</h1>
-        <h2>Request ID: ${data.requestId}</h2>
+        <h2>Request ID: ${escapeHtml(data.requestId)}</h2>
         
         <h3>Requester Information</h3>
         <ul>
-          <li><strong>Name:</strong> ${data.employeeName}</li>
-          <li><strong>Department:</strong> ${data.department}</li>
-          <li><strong>Position:</strong> ${data.position}</li>
-          <li><strong>Phone:</strong> ${data.phoneNumber}</li>
-          <li><strong>Email:</strong> ${data.email}</li>
+          <li><strong>Name:</strong> ${escapeHtml(data.employeeName)}</li>
+          <li><strong>Department:</strong> ${escapeHtml(data.department)}</li>
+          <li><strong>Position:</strong> ${escapeHtml(data.position)}</li>
+          <li><strong>Phone:</strong> ${escapeHtml(data.phoneNumber)}</li>
+          <li><strong>Email:</strong> ${escapeHtml(data.email)}</li>
         </ul>
         
         <h3>Event Details</h3>
         <ul>
-          <li><strong>Event:</strong> ${data.eventName}</li>
-          <li><strong>Location:</strong> ${data.location}</li>
-          <li><strong>Expected Users:</strong> ${data.expectedUsers}</li>
+          <li><strong>Event:</strong> ${escapeHtml(data.eventName)}</li>
+          <li><strong>Location:</strong> ${escapeHtml(data.location)}</li>
+          <li><strong>Expected Users:</strong> ${escapeHtml(data.expectedUsers)}</li>
         </ul>
         
         <h3>Schedule</h3>
         <ul>
-          <li><strong>Pickup:</strong> ${new Date(data.pickupDateTime).toLocaleString()}</li>
-          <li><strong>Return:</strong> ${new Date(data.returnDateTime).toLocaleString()}</li>
-          <li><strong>Event Dates:</strong> ${data.eventStartDate} to ${data.eventEndDate}</li>
+          <li><strong>Pickup:</strong> ${escapeHtml(new Date(data.pickupDateTime).toLocaleString())}</li>
+          <li><strong>Return:</strong> ${escapeHtml(new Date(data.returnDateTime).toLocaleString())}</li>
+          <li><strong>Event Dates:</strong> ${escapeHtml(data.eventStartDate)} to ${escapeHtml(data.eventEndDate)}</li>
         </ul>
         
         <h3>Equipment</h3>
         <ul>
-          <li><strong>Machine Unit:</strong> ${data.machineUnit}</li>
-          <li><strong>Used Before:</strong> ${data.usedBefore}</li>
-          <li><strong>Training Needed:</strong> ${data.needTraining}</li>
+          <li><strong>Machine Unit:</strong> ${escapeHtml(data.machineUnit)}</li>
+          <li><strong>Used Before:</strong> ${escapeHtml(data.usedBefore)}</li>
+          <li><strong>Training Needed:</strong> ${escapeHtml(data.needTraining)}</li>
         </ul>
         
-        ${data.specialRequirements ? `<p><strong>Special Requirements:</strong> ${data.specialRequirements}</p>` : ""}
+        ${data.specialRequirements ? `<p><strong>Special Requirements:</strong> ${escapeHtml(data.specialRequirements)}</p>` : ""}
         
         <p><a href="${reviewUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px;">Review Request</a></p>
       `,
@@ -102,18 +114,18 @@ const handler = async (req: Request): Promise<Response> => {
     await resend.emails.send({
       from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
       to: [data.email],
-      subject: `Request Confirmation: ${data.requestId}`,
+      subject: `Request Confirmation: ${escapeHtml(data.requestId)}`,
       html: `
         <h1>Thank you for your request!</h1>
-        <p>Dear ${data.employeeName},</p>
+        <p>Dear ${escapeHtml(data.employeeName)},</p>
         <p>Your skin check machine request has been received and is being reviewed.</p>
         
         <h3>Request Details</h3>
         <ul>
-          <li><strong>Request ID:</strong> ${data.requestId}</li>
-          <li><strong>Event:</strong> ${data.eventName}</li>
-          <li><strong>Location:</strong> ${data.location}</li>
-          <li><strong>Pickup:</strong> ${new Date(data.pickupDateTime).toLocaleString()}</li>
+          <li><strong>Request ID:</strong> ${escapeHtml(data.requestId)}</li>
+          <li><strong>Event:</strong> ${escapeHtml(data.eventName)}</li>
+          <li><strong>Location:</strong> ${escapeHtml(data.location)}</li>
+          <li><strong>Pickup:</strong> ${escapeHtml(new Date(data.pickupDateTime).toLocaleString())}</li>
         </ul>
         
         <p>You will receive an email once your request has been reviewed by the admin team.</p>
