@@ -137,7 +137,7 @@ const AdminDashboard = () => {
                         </div>
                         {isAdmin && (
                           <Button
-                            onClick={() => navigate(`/admin/review/${request.id}`)}
+                            onClick={() => navigate(`/admin/review/${request.request_id}`)}
                             className="gap-2 bg-gradient-to-r from-primary to-accent"
                           >
                             Review
