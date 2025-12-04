@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email to admin
     const adminEmail = data.informTo === "YGN-Admin" ? "flowlocreative@gmail.com" : "drmozzgaming@gmail.com";
     
-    const reviewUrl = `${Deno.env.get("SUPABASE_URL")}/admin/review/${data.requestId}`;
+    const reviewUrl = `https://blueocean-fancyhouse.com/admin/review/${data.requestId}`;
 
     const emailResponse = await resend.emails.send({
       from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
