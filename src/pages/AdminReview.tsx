@@ -36,7 +36,7 @@ const AdminReview = () => {
       const { data, error } = await supabase
         .from("skin_check_requests")
         .select("*")
-        .eq("id", id)
+        .eq("request_id", id)
         .single();
 
       if (error) throw error;
@@ -73,7 +73,7 @@ const AdminReview = () => {
           return_notes: adminData.returnNotes || null,
           actual_return_datetime: adminData.actualReturnDateTime || null,
         })
-        .eq("id", id);
+        .eq("request_id", id);
 
       if (error) throw error;
 
