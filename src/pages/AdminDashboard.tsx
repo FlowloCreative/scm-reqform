@@ -82,8 +82,8 @@ const AdminDashboard = () => {
           </Button>
         </div>
 
-        {!isAdmin && <Card className="mb-6 border-destructive">
-            <CardContent className="pt-6">
+        {!isAdmin && <Card className="mb-6 border-destructive bg-inherit text-rose-600">
+            <CardContent className="pt-6 text-inherit">
               <p className="text-destructive font-medium">
                 You don't have admin access. Please contact an administrator to grant you admin permissions.
               </p>
