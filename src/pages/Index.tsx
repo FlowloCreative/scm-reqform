@@ -7,21 +7,21 @@ const Index = () => {
   return <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
       <div className="max-w-5xl w-full">
         <div className="text-center mb-12">
-          <h1 className="font-bold mb-4 text-slate-100 font-sans text-3xl">
+          <h1 className="font-bold mb-4 text-slate-100 font-sans text-4xl">
             Skin Check Machine
           </h1>
-          <p className="mb-2 text-primary-foreground font-sans text-base">Request Management </p>
+          <p className="mb-2 text-primary-foreground font-sans font-bold text-lg">Request Management </p>
           <p className="text-sm font-sans text-destructive">Created by Dr.Mozz || Marketing Department</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/request")}>
             <CardHeader className="text-center pb-4 bg-popover">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4 bg-destructive">
-                <FileText className="w-8 h-8 text-white" />
+              <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4 bg-destructive text-popover-foreground">
+                <FileText className="w-8 h-8 text-sidebar-primary" />
               </div>
               <CardTitle className="text-2xl font-semibold font-sans text-popover-foreground">Submit Request</CardTitle>
-              <CardDescription className="text-base">Request Skin Check Machine for Event</CardDescription>
+              <CardDescription className="text-sm">Request Skin Check Machine for Event</CardDescription>
             </CardHeader>
             <CardContent className="text-center bg-popover">
               <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity py-6 border-primary-foreground px-0 text-base text-popover-foreground bg-inherit">
