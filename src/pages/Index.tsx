@@ -18,7 +18,7 @@ const Index = () => {
           <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/request")}>
             <CardHeader className="text-center pb-4 bg-popover">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4 bg-inherit text-inherit">
-                <FileText className="w-8 h-8 text-sidebar-primary" />
+                <FileText className="w-8 h-8 text-inherit" />
               </div>
               <CardTitle className="text-2xl font-semibold font-sans text-popover-foreground">Submit Request</CardTitle>
               <CardDescription className="text-sm">Request Skin Check Machine for Event</CardDescription>
