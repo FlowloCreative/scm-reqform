@@ -222,7 +222,7 @@ const Request = () => {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Section 1: Requested By */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">1. Requested By</h3>
+                <h3 className="font-semibold text-base text-destructive">1. Requested By</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="employeeName" className="required">Name</Label>
@@ -249,7 +249,7 @@ const Request = () => {
 
               {/* Section 2: Event Details */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">2. Event/Usage Details</h3>
+                <h3 className="font-semibold text-base text-destructive">2. Event/Usage Details</h3>
                 <div>
                   <Label htmlFor="eventName" className="required">Event/Promotion Name</Label>
                   <Input id="eventName" value={formData.eventName} onChange={e => updateField("eventName", e.target.value)} required />
@@ -268,8 +268,8 @@ const Request = () => {
 
               {/* Section 3: Booking Schedule */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">3. Booking Schedule</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-base text-destructive">3. Booking Schedule</h3>
+                <p className="text-sm text-green-500">
                   Select event dates first. Pickup is 1 day before event start, return is 1 day after event end.
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -301,7 +301,7 @@ const Request = () => {
 
               {/* Section 4: Equipment Tracking */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">4. Equipment Tracking</h3>
+                <h3 className="font-semibold text-base text-destructive">4. Equipment Tracking</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="machineUnit" className="required">Machine Unit ID</Label>
@@ -332,7 +332,7 @@ const Request = () => {
 
               {/* Section 5: Usage Requirements */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">5. Usage Requirements</h3>
+                <h3 className="font-semibold text-base text-destructive">5. Usage Requirements</h3>
                 <div>
                   <Label className="required">Have you used this machine before?</Label>
                   <RadioGroup value={formData.usedBefore} onValueChange={value => updateField("usedBefore", value)} className="flex gap-4 mt-2">
@@ -365,7 +365,7 @@ const Request = () => {
                 </div>
               </div>
 
-              <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6 text-slate-100 bg-slate-400 hover:bg-slate-300 border border-solid border-slate-300">
+              <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6 border border-solid text-destructive bg-inherit border-destructive">
                 {loading ? "Submitting..." : "Submit Request"}
               </Button>
             </form>
