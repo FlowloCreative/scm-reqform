@@ -365,7 +365,7 @@ const Request = () => {
                 </div>
               </div>
 
-              <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6 text-slate-100 border-0 bg-muted">
+              <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6 text-slate-100 border-0 bg-slate-400 hover:bg-slate-300">
                 {loading ? "Submitting..." : "Submit Request"}
               </Button>
             </form>
