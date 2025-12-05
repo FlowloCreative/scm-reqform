@@ -16,15 +16,15 @@ const Index = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/request")}>
-            <CardHeader className="text-center pb-4 bg-slate-800/[0.29]">
+            <CardHeader className="text-center pb-4 bg-popover">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4 bg-destructive">
                 <FileText className="w-8 h-8 text-white" />
               </div>
-              <CardTitle className="text-2xl">Submit Request</CardTitle>
+              <CardTitle className="text-2xl font-semibold font-sans text-popover-foreground">Submit Request</CardTitle>
               <CardDescription className="text-base">Request Skin Check Machine for Event</CardDescription>
             </CardHeader>
-            <CardContent className="text-center">
-              <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6 bg-destructive">
+            <CardContent className="text-center bg-popover">
+              <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity py-6 border-primary-foreground px-0 text-base text-popover-foreground bg-inherit">
                 New Request
               </Button>
             </CardContent>
