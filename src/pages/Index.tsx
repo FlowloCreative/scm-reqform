@@ -33,13 +33,13 @@ const Index = () => {
           <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/admin")}>
             <CardHeader className="text-center pb-4 text-rose-600">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4">
-                <UserCog className="w-8 h-8 text-white" />
+                <UserCog className="w-8 h-8 text-rose-600" />
               </div>
               <CardTitle className="text-2xl">Admin Portal</CardTitle>
-              <CardDescription className="text-base">Review and manage booking requests</CardDescription>
+              <CardDescription className="text-rose-600 text-sm">Review and manage booking requests</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
-              <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6">
+              <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity py-6 text-rose-600 text-base border border-rose-600">
                 Admin Login
               </Button>
             </CardContent>
