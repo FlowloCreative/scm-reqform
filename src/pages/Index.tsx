@@ -30,7 +30,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/admin")}>
+          <Card onClick={() => navigate("/admin")} className="glass-effect hover:shadow-2xl transition-all cursor-pointer text-rose-600">
             <CardHeader className="text-center pb-4 text-rose-600">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4">
                 <UserCog className="w-8 h-8 text-rose-600" />
