@@ -216,7 +216,7 @@ const Request = () => {
             <CardTitle className="bg-gradient-to-r from-primary to-accent bg-clip-text bg-inherit font-sans text-center text-3xl text-accent-foreground font-extrabold">
               Skin Check Machine Request Form
             </CardTitle>
-            <CardDescription className="text-base">Created by Dr.Mozz || Marketing Department</CardDescription>
+            <CardDescription className="text-sm">Created by Dr.Mozz || Marketing Department</CardDescription>
           </CardHeader>
           <CardContent className="pt-8">
             <form onSubmit={handleSubmit} className="space-y-8">
