@@ -12,13 +12,11 @@ import { toast } from "sonner";
 import { format, addDays, subDays, parseISO, isWithinInterval, startOfDay } from "date-fns";
 import { CheckCircle, ArrowLeft } from "lucide-react";
 import { DatePickerWithBookings } from "@/components/DatePickerWithBookings";
-
 interface BookedPeriod {
   pickup_datetime: string;
   return_datetime: string;
   machine_unit: string;
 }
-
 const Request = () => {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -40,17 +38,15 @@ const Request = () => {
     informTo: "",
     usedBefore: "No",
     needTraining: "Yes",
-    specialRequirements: "",
+    specialRequirements: ""
   });
 
   // Fetch confirmed bookings to check availability
   useEffect(() => {
     const fetchBookedPeriods = async () => {
-      const { data } = await supabase
-        .from("skin_check_requests")
-        .select("pickup_datetime, return_datetime, machine_unit")
-        .in("request_status", ["Approved", "Pending"]);
-      
+      const {
+        data
+      } = await supabase.from("skin_check_requests").select("pickup_datetime, return_datetime, machine_unit").in("request_status", ["Approved", "Pending"]);
       if (data) {
         setBookedPeriods(data);
       }
@@ -65,7 +61,6 @@ const Request = () => {
     const minPickup = subDays(eventStart, 1);
     return format(minPickup, "yyyy-MM-dd");
   }, [formData.eventStartDate]);
-
   const returnMinDate = useMemo(() => {
     if (!formData.eventEndDate) return "";
     const eventEnd = parseISO(formData.eventEndDate);
@@ -73,47 +68,46 @@ const Request = () => {
     return format(minReturn, "yyyy-MM-dd");
   }, [formData.eventEndDate]);
 
-
   // Check if pickup date conflicts with existing bookings
   const isDateAvailable = (pickupDate: string, returnDate: string, machineUnit: string): boolean => {
     if (!pickupDate || !returnDate || !machineUnit) return true;
-    
     const pickup = startOfDay(parseISO(pickupDate));
     const returnD = startOfDay(parseISO(returnDate));
-    
     for (const booking of bookedPeriods) {
       if (booking.machine_unit !== machineUnit) continue;
-      
       const bookedPickup = startOfDay(parseISO(booking.pickup_datetime));
       const bookedReturn = startOfDay(parseISO(booking.return_datetime));
-      
+
       // Check if there's any overlap
-      if (
-        isWithinInterval(pickup, { start: bookedPickup, end: bookedReturn }) ||
-        isWithinInterval(returnD, { start: bookedPickup, end: bookedReturn }) ||
-        isWithinInterval(bookedPickup, { start: pickup, end: returnD })
-      ) {
+      if (isWithinInterval(pickup, {
+        start: bookedPickup,
+        end: bookedReturn
+      }) || isWithinInterval(returnD, {
+        start: bookedPickup,
+        end: bookedReturn
+      }) || isWithinInterval(bookedPickup, {
+        start: pickup,
+        end: returnD
+      })) {
         return false;
       }
     }
     return true;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate date availability
     if (!isDateAvailable(formData.pickupDateTime, formData.returnDateTime, formData.machineUnit)) {
       toast.error("Selected dates conflict with an existing booking. Please choose different dates.");
       return;
     }
-    
     setLoading(true);
-
     try {
       const requestId = `REQ-${Date.now().toString().slice(-8)}`;
-      
-      const { error } = await supabase.from("skin_check_requests").insert({
+      const {
+        error
+      } = await supabase.from("skin_check_requests").insert({
         request_id: requestId,
         employee_name: formData.employeeName,
         department: formData.department,
@@ -131,16 +125,17 @@ const Request = () => {
         inform_to: formData.informTo,
         used_before: formData.usedBefore === "Yes",
         need_training: formData.needTraining === "Yes",
-        special_requirements: formData.specialRequirements || null,
+        special_requirements: formData.specialRequirements || null
       });
-
       if (error) throw error;
 
       // Call edge function to send email and sync to Google Sheets
       await supabase.functions.invoke("handle-request", {
-        body: { requestId, ...formData },
+        body: {
+          requestId,
+          ...formData
+        }
       });
-
       toast.success("Request submitted successfully!");
       setSubmitted(true);
     } catch (error: any) {
@@ -149,9 +144,11 @@ const Request = () => {
       setLoading(false);
     }
   };
-
   const updateField = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   // Reset dependent fields when event dates change
@@ -161,15 +158,12 @@ const Request = () => {
     updateField("eventEndDate", "");
     updateField("returnDateTime", "");
   };
-
   const handleEventEndChange = (value: string) => {
     updateField("eventEndDate", value);
     updateField("returnDateTime", "");
   };
-
   if (submitted) {
-    return (
-      <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
+    return <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
         <Card className="glass-effect shadow-2xl max-w-md w-full">
           <CardContent className="pt-8 pb-8 text-center space-y-6">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
@@ -186,47 +180,40 @@ const Request = () => {
                   Back to Home
                 </Link>
               </Button>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  setSubmitted(false);
-                  setFormData({
-                    employeeName: "",
-                    department: "",
-                    position: "",
-                    phoneNumber: "",
-                    email: "",
-                    eventName: "",
-                    location: "",
-                    expectedUsers: "",
-                    pickupDateTime: "",
-                    returnDateTime: "",
-                    eventStartDate: "",
-                    eventEndDate: "",
-                    machineUnit: "",
-                    informTo: "",
-                    usedBefore: "No",
-                    needTraining: "Yes",
-                    specialRequirements: "",
-                  });
-                }}
-              >
+              <Button variant="outline" className="w-full" onClick={() => {
+              setSubmitted(false);
+              setFormData({
+                employeeName: "",
+                department: "",
+                position: "",
+                phoneNumber: "",
+                email: "",
+                eventName: "",
+                location: "",
+                expectedUsers: "",
+                pickupDateTime: "",
+                returnDateTime: "",
+                eventStartDate: "",
+                eventEndDate: "",
+                machineUnit: "",
+                informTo: "",
+                usedBefore: "No",
+                needTraining: "Yes",
+                specialRequirements: ""
+              });
+            }}>
                 Submit Another Request
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen gradient-bg py-8 px-4">
+  return <div className="min-h-screen gradient-bg py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="glass-effect shadow-2xl">
           <CardHeader className="text-center border-b border-primary/20 pb-6">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-[#2366ac] bg-[#2366ac] font-serif text-center">
               Skin Check Machine Request Form
             </CardTitle>
             <CardDescription className="text-base">Created by Dr.Mozz || Marketing Department</CardDescription>
@@ -239,24 +226,24 @@ const Request = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="employeeName" className="required">Name</Label>
-                    <Input id="employeeName" value={formData.employeeName} onChange={(e) => updateField("employeeName", e.target.value)} required />
+                    <Input id="employeeName" value={formData.employeeName} onChange={e => updateField("employeeName", e.target.value)} required />
                   </div>
                   <div>
                     <Label htmlFor="department" className="required">Department</Label>
-                    <Input id="department" value={formData.department} onChange={(e) => updateField("department", e.target.value)} required />
+                    <Input id="department" value={formData.department} onChange={e => updateField("department", e.target.value)} required />
                   </div>
                   <div>
                     <Label htmlFor="position" className="required">Position</Label>
-                    <Input id="position" value={formData.position} onChange={(e) => updateField("position", e.target.value)} required />
+                    <Input id="position" value={formData.position} onChange={e => updateField("position", e.target.value)} required />
                   </div>
                   <div>
                     <Label htmlFor="phoneNumber" className="required">Phone Number</Label>
-                    <Input id="phoneNumber" type="tel" value={formData.phoneNumber} onChange={(e) => updateField("phoneNumber", e.target.value)} required />
+                    <Input id="phoneNumber" type="tel" value={formData.phoneNumber} onChange={e => updateField("phoneNumber", e.target.value)} required />
                   </div>
                 </div>
                 <div>
                   <Label htmlFor="email" className="required">Email Address</Label>
-                  <Input id="email" type="email" value={formData.email} onChange={(e) => updateField("email", e.target.value)} required />
+                  <Input id="email" type="email" value={formData.email} onChange={e => updateField("email", e.target.value)} required />
                 </div>
               </div>
 
@@ -265,16 +252,16 @@ const Request = () => {
                 <h3 className="text-lg font-semibold text-accent">2. Event/Usage Details</h3>
                 <div>
                   <Label htmlFor="eventName" className="required">Event/Promotion Name</Label>
-                  <Input id="eventName" value={formData.eventName} onChange={(e) => updateField("eventName", e.target.value)} required />
+                  <Input id="eventName" value={formData.eventName} onChange={e => updateField("eventName", e.target.value)} required />
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="location" className="required">Location/Venue</Label>
-                    <Input id="location" value={formData.location} onChange={(e) => updateField("location", e.target.value)} required />
+                    <Input id="location" value={formData.location} onChange={e => updateField("location", e.target.value)} required />
                   </div>
                   <div>
                     <Label htmlFor="expectedUsers" className="required">Expected Number of Users</Label>
-                    <Input id="expectedUsers" type="number" value={formData.expectedUsers} onChange={(e) => updateField("expectedUsers", e.target.value)} required />
+                    <Input id="expectedUsers" type="number" value={formData.expectedUsers} onChange={e => updateField("expectedUsers", e.target.value)} required />
                   </div>
                 </div>
               </div>
@@ -288,63 +275,26 @@ const Request = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
-                    <DatePickerWithBookings
-                      value={formData.eventStartDate}
-                      onChange={(date) => handleEventStartChange(date)}
-                      bookedPeriods={bookedPeriods}
-                      machineUnit={formData.machineUnit}
-                      minDate={addDays(new Date(), 1)}
-                      placeholder="Select event start date"
-                    />
+                    <DatePickerWithBookings value={formData.eventStartDate} onChange={date => handleEventStartChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={addDays(new Date(), 1)} placeholder="Select event start date" />
                     <p className="text-xs text-muted-foreground mt-1">Must be from tomorrow onwards</p>
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
-                    <DatePickerWithBookings
-                      value={formData.eventEndDate}
-                      onChange={(date) => handleEventEndChange(date)}
-                      bookedPeriods={bookedPeriods}
-                      machineUnit={formData.machineUnit}
-                      minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 1)}
-                      disabled={!formData.eventStartDate}
-                      placeholder="Select event end date"
-                    />
+                    <DatePickerWithBookings value={formData.eventEndDate} onChange={date => handleEventEndChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 1)} disabled={!formData.eventStartDate} placeholder="Select event end date" />
                   </div>
                   <div>
                     <Label htmlFor="pickupDateTime" className="required">Pickup Date</Label>
-                    <DatePickerWithBookings
-                      value={formData.pickupDateTime}
-                      onChange={(date) => updateField("pickupDateTime", date)}
-                      bookedPeriods={bookedPeriods}
-                      machineUnit={formData.machineUnit}
-                      minDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined}
-                      maxDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined}
-                      disabled={!formData.eventStartDate}
-                      placeholder="Select pickup date"
-                    />
-                    {formData.eventStartDate && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                    <DatePickerWithBookings value={formData.pickupDateTime} onChange={date => updateField("pickupDateTime", date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined} maxDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined} disabled={!formData.eventStartDate} placeholder="Select pickup date" />
+                    {formData.eventStartDate && <p className="text-xs text-muted-foreground mt-1">
                         Available: {pickupMinDate}
-                      </p>
-                    )}
+                      </p>}
                   </div>
                   <div>
                     <Label htmlFor="returnDateTime" className="required">Return Date</Label>
-                    <DatePickerWithBookings
-                      value={formData.returnDateTime}
-                      onChange={(date) => updateField("returnDateTime", date)}
-                      bookedPeriods={bookedPeriods}
-                      machineUnit={formData.machineUnit}
-                      minDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined}
-                      maxDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined}
-                      disabled={!formData.eventEndDate}
-                      placeholder="Select return date"
-                    />
-                    {formData.eventEndDate && (
-                      <p className="text-xs text-muted-foreground mt-1">
+                    <DatePickerWithBookings value={formData.returnDateTime} onChange={date => updateField("returnDateTime", date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined} maxDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined} disabled={!formData.eventEndDate} placeholder="Select return date" />
+                    {formData.eventEndDate && <p className="text-xs text-muted-foreground mt-1">
                         Available: {returnMinDate}
-                      </p>
-                    )}
+                      </p>}
                   </div>
                 </div>
               </div>
@@ -355,7 +305,7 @@ const Request = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="machineUnit" className="required">Machine Unit ID</Label>
-                    <Select value={formData.machineUnit} onValueChange={(value) => updateField("machineUnit", value)} required>
+                    <Select value={formData.machineUnit} onValueChange={value => updateField("machineUnit", value)} required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Unit" />
                       </SelectTrigger>
@@ -367,7 +317,7 @@ const Request = () => {
                   </div>
                   <div>
                     <Label htmlFor="informTo" className="required">Inform To</Label>
-                    <Select value={formData.informTo} onValueChange={(value) => updateField("informTo", value)} required>
+                    <Select value={formData.informTo} onValueChange={value => updateField("informTo", value)} required>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Admin" />
                       </SelectTrigger>
@@ -385,7 +335,7 @@ const Request = () => {
                 <h3 className="text-lg font-semibold text-accent">5. Usage Requirements</h3>
                 <div>
                   <Label className="required">Have you used this machine before?</Label>
-                  <RadioGroup value={formData.usedBefore} onValueChange={(value) => updateField("usedBefore", value)} className="flex gap-4 mt-2">
+                  <RadioGroup value={formData.usedBefore} onValueChange={value => updateField("usedBefore", value)} className="flex gap-4 mt-2">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="Yes" id="usedYes" />
                       <Label htmlFor="usedYes" className="font-normal cursor-pointer">Yes</Label>
@@ -398,7 +348,7 @@ const Request = () => {
                 </div>
                 <div>
                   <Label className="required">Need training/setup assistance?</Label>
-                  <RadioGroup value={formData.needTraining} onValueChange={(value) => updateField("needTraining", value)} className="flex gap-4 mt-2">
+                  <RadioGroup value={formData.needTraining} onValueChange={value => updateField("needTraining", value)} className="flex gap-4 mt-2">
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="Yes" id="trainingYes" />
                       <Label htmlFor="trainingYes" className="font-normal cursor-pointer">Yes</Label>
@@ -411,7 +361,7 @@ const Request = () => {
                 </div>
                 <div>
                   <Label htmlFor="specialRequirements">Special Requirements/Notes</Label>
-                  <Textarea id="specialRequirements" value={formData.specialRequirements} onChange={(e) => updateField("specialRequirements", e.target.value)} className="min-h-[100px]" />
+                  <Textarea id="specialRequirements" value={formData.specialRequirements} onChange={e => updateField("specialRequirements", e.target.value)} className="min-h-[100px]" />
                 </div>
               </div>
 
@@ -422,8 +372,6 @@ const Request = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Request;
