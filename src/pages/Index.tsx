@@ -14,7 +14,7 @@ const Index = () => {
           <p className="text-sm font-sans text-destructive">Created by Dr.Mozz || Marketing Department</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 shadow-2xl">
           <Card onClick={() => navigate("/request")} className="glass-effect transition-all cursor-pointer shadow-2xl text-popover-foreground">
             <CardHeader className="text-center pb-4 text-popover-foreground bg-inherit border-popover-foreground border-0">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent flex items-center justify-center mb-4 bg-inherit rounded-none opacity-100 text-popover-foreground">
