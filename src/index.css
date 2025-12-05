@@ -6,6 +6,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Nunito&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -20,31 +21,31 @@ All colors MUST be HSL.
     --foreground: 210 40% 96.0784%;
 
     --card: 229 84% 4.902%;
-    --card-foreground: 217 32.5843% 17.451%;
+    --card-foreground: 210 40% 96.0784%;
 
     --popover: 217 32.5843% 17.451%;
-    --popover-foreground: 210 40% 96.0784%;
+    --popover-foreground: 171 76.9231% 64.3137%;
 
-    --primary: 217 32.5843% 17.451%;
+    --primary: 229 84% 4.902%;
     --primary-foreground: 210 40% 96.0784%;
 
     --primary-gradient: linear-gradient(135deg, hsl(254 73% 65%), hsl(270 50% 60%));
 
-    --secondary: 217 32.5843% 17.451%;
+    --secondary: 229 84% 4.902%;
     --secondary-foreground: 210 40% 96.0784%;
 
-    --muted: 215 16.318% 46.8627%;
-    --muted-foreground: 215 19.3182% 34.5098%;
+    --muted: 222 47.3684% 11.1765%;
+    --muted-foreground: 210 40% 96.0784%;
 
-    --accent: 215 16.318% 46.8627%;
-    --accent-foreground: 215 20.2247% 65.098%;
+    --accent: 229 84% 4.902%;
+    --accent-foreground: 210 40% 96.0784%;
 
-    --destructive: 215 19.3182% 34.5098%;
+    --destructive: 198 93.2039% 59.6078%;
     --destructive-foreground: 210 40% 96.0784%;
 
-    --border: 215 25% 26.6667%;
-    --input: 215 25% 26.6667%;
-    --ring: 215 16.318% 46.8627%;
+    --border: 217 32.5843% 17.451%;
+    --input: 217 32.5843% 17.451%;
+    --ring: 215 19.3182% 34.5098%;
 
     --radius: 0.375rem;
 
@@ -76,7 +77,7 @@ All colors MUST be HSL.
 
     --sidebar: 248 0.3% 98.4%;
 
-    --font-sans: Nunito, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+    --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
 
     --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
@@ -86,13 +87,13 @@ All colors MUST be HSL.
 
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
 
-    --shadow-sm: 0px 1px 1px 0px hsl(192, 91%, 36%);
+    --shadow-sm: 0px 1px 0px 0px hsl(215, 20%, 65%);
 
-    --shadow: 0px 1px 1px 0px hsl(192, 91%, 36%);
+    --shadow: 0px 1px 0px 0px hsl(215, 20%, 65%);
 
-    --shadow-md: 0px 1px 1.5px 0px hsl(192, 91%, 36%);
+    --shadow-md: 0px 1px 0px 0px hsl(215, 20%, 65%);
 
-    --shadow-lg: 0px 1px 2.5px 0px hsl(192, 91%, 36%);
+    --shadow-lg: 0px 1px 0px 0px hsl(215, 20%, 65%);
 
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
 
@@ -147,12 +148,13 @@ All colors MUST be HSL.
     --sidebar: 266 4% 20.8%;
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-sm: 0px 1px 0px 0px hsl(215, 20%, 65%);
+    --shadow: 0px 1px 0px 0px hsl(215, 20%, 65%);
+    --shadow-md: 0px 1px 0px 0px hsl(215, 20%, 65%);
+    --shadow-lg: 0px 1px 0px 0px hsl(215, 20%, 65%);
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   }
 }
 
