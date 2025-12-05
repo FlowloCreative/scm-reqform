@@ -16,22 +16,22 @@ const Index = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/request")}>
-            <CardHeader className="text-center pb-4 bg-popover">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4 bg-inherit text-inherit">
+            <CardHeader className="text-center pb-4 text-popover-foreground bg-secondary">
+              <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent flex items-center justify-center mb-4 bg-inherit rounded-none opacity-100 text-popover-foreground">
                 <FileText className="w-8 h-8 text-inherit" />
               </div>
               <CardTitle className="text-2xl font-semibold font-sans text-popover-foreground">Submit Request</CardTitle>
-              <CardDescription className="text-sm">Request Skin Check Machine for Event</CardDescription>
+              <CardDescription className="text-sm text-popover-foreground">Request Skin Check Machine for Event</CardDescription>
             </CardHeader>
-            <CardContent className="text-center bg-popover">
-              <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity py-6 border-primary-foreground px-0 text-base text-popover-foreground bg-inherit">
+            <CardContent className="text-center bg-inherit">
+              <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity py-6 px-0 text-base text-popover-foreground bg-inherit border-popover-foreground border">
                 New Request
               </Button>
             </CardContent>
           </Card>
 
           <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/admin")}>
-            <CardHeader className="text-center pb-4">
+            <CardHeader className="text-center pb-4 text-rose-600">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4">
                 <UserCog className="w-8 h-8 text-white" />
               </div>
