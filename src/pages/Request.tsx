@@ -213,7 +213,7 @@ const Request = () => {
       <div className="max-w-4xl mx-auto">
         <Card className="glass-effect shadow-2xl">
           <CardHeader className="text-center border-b border-primary/20 pb-6">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-[#2366ac] bg-[#2366ac] font-serif text-center">
+            <CardTitle className="text-3xl bg-gradient-to-r from-primary to-accent bg-clip-text text-center text-inherit bg-inherit font-sans font-medium">
               Skin Check Machine Request Form
             </CardTitle>
             <CardDescription className="text-base">Created by Dr.Mozz || Marketing Department</CardDescription>
