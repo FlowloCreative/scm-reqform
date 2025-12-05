@@ -15,15 +15,15 @@ const Index = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card onClick={() => navigate("/request")} className="glass-effect transition-all cursor-pointer shadow-2xl">
-            <CardHeader className="text-center pb-4 text-popover-foreground bg-inherit border border-popover-foreground">
+          <Card onClick={() => navigate("/request")} className="glass-effect transition-all cursor-pointer shadow-none">
+            <CardHeader className="text-center pb-4 text-popover-foreground bg-inherit border-popover-foreground border-0">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent flex items-center justify-center mb-4 bg-inherit rounded-none opacity-100 text-popover-foreground">
                 <FileText className="w-8 h-8 text-inherit" />
               </div>
               <CardTitle className="text-2xl font-semibold font-sans text-popover-foreground">Submit Request</CardTitle>
               <CardDescription className="text-sm text-popover-foreground">Request Skin Check Machine for Event</CardDescription>
             </CardHeader>
-            <CardContent className="text-center bg-inherit shadow-none">
+            <CardContent className="text-center bg-inherit shadow-2xl">
               <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity py-6 px-0 text-base text-popover-foreground bg-inherit border-popover-foreground border">
                 New Request
               </Button>
