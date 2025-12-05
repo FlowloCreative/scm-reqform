@@ -2,19 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { FileText, UserCog } from "lucide-react";
-
 const Index = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+  return <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
       <div className="max-w-5xl w-full">
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4">
+          <h1 className="text-5xl font-bold mb-4 text-slate-100 font-sans">
             Skin Check Machine
           </h1>
-          <p className="text-xl text-white/90 mb-2">Request Management System</p>
-          <p className="text-white/70">Created by Dr.Mozz || Marketing Department</p>
+          <p className="mb-2 text-primary-foreground font-sans text-lg">Request Management </p>
+          <p className="text-sm font-sans text-slate-100">Created by Dr.Mozz || Marketing Department</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -49,8 +46,6 @@ const Index = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
