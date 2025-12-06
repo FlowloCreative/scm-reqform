@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { LogOut, ExternalLink } from "lucide-react";
+
 interface Request {
   id: string;
   request_id: string;
@@ -17,38 +18,42 @@ interface Request {
   created_at: string;
   pickup_datetime: string;
 }
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
     checkAuth();
     fetchRequests();
   }, []);
+
   const checkAuth = async () => {
-    const {
-      data: {
-        session
-      }
-    } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       navigate("/auth");
       return;
     }
-    const {
-      data: roles
-    } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id).eq("role", "admin").maybeSingle();
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
     setIsAdmin(!!roles);
   };
+
   const fetchRequests = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from("skin_check_requests").select("*").order("created_at", {
-        ascending: false
-      });
+      const { data, error } = await supabase
+        .from("skin_check_requests")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
       setRequests(data || []);
     } catch (error: any) {
@@ -57,19 +62,23 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive"> = {
       Pending: "secondary",
       Approved: "default",
-      Rejected: "destructive"
+      Rejected: "destructive",
     };
-    return <Badge variant={variants[status] || "default"} className="text-slate-800 bg-green-400">{status}</Badge>;
+    return <Badge variant={variants[status] || "default"}>{status}</Badge>;
   };
-  return <div className="min-h-screen gradient-bg py-8 px-4">
+
+  return (
+    <div className="min-h-screen gradient-bg py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -82,13 +91,15 @@ const AdminDashboard = () => {
           </Button>
         </div>
 
-        {!isAdmin && <Card className="mb-6 border-destructive bg-inherit text-rose-600">
-            <CardContent className="pt-6 text-inherit">
+        {!isAdmin && (
+          <Card className="mb-6 border-destructive">
+            <CardContent className="pt-6">
               <p className="text-destructive font-medium">
                 You don't have admin access. Please contact an administrator to grant you admin permissions.
               </p>
             </CardContent>
-          </Card>}
+          </Card>
+        )}
 
         <Card className="glass-effect shadow-2xl">
           <CardHeader>
@@ -96,8 +107,14 @@ const AdminDashboard = () => {
             <CardDescription>View and manage machine booking requests</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? <p className="text-center py-8 text-muted-foreground">Loading requests...</p> : requests.length === 0 ? <p className="text-center py-8 text-muted-foreground">No requests found</p> : <div className="space-y-4">
-                {requests.map(request => <Card key={request.id} className="hover:shadow-md transition-shadow">
+            {loading ? (
+              <p className="text-center py-8 text-muted-foreground">Loading requests...</p>
+            ) : requests.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">No requests found</p>
+            ) : (
+              <div className="space-y-4">
+                {requests.map((request) => (
+                  <Card key={request.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
@@ -118,17 +135,26 @@ const AdminDashboard = () => {
                             <span className="font-medium">Pickup:</span> {new Date(request.pickup_datetime).toLocaleString()}
                           </p>
                         </div>
-                        {isAdmin && <Button onClick={() => navigate(`/admin/review/${request.request_id}`)} className="gap-2 bg-gradient-to-r from-primary to-accent bg-destructive">
+                        {isAdmin && (
+                          <Button
+                            onClick={() => navigate(`/admin/review/${request.request_id}`)}
+                            className="gap-2 bg-gradient-to-r from-primary to-accent"
+                          >
                             Review
                             <ExternalLink className="w-4 h-4" />
-                          </Button>}
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
-                  </Card>)}
-              </div>}
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default AdminDashboard;
