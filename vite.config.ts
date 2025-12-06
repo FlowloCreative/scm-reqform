@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+// Force rebuild to load environment variables
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
