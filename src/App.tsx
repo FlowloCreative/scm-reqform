@@ -16,7 +16,7 @@ const App = () => <QueryClientProvider client={queryClient}>
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} className="border-0 border-inherit" />
+          <Route path="/" element={<Index />} />
           <Route path="/request" element={<Request />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<AdminDashboard />} />
