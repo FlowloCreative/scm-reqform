@@ -4,31 +4,24 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 const Index = lazy(() => import("./pages/Index"));
 const Request = lazy(() => import("./pages/Request"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminReview = lazy(() => import("./pages/AdminReview"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-
 const queryClient = new QueryClient();
-
-const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-800">
+const LoadingFallback = () => <div className="min-h-screen flex items-center justify-center bg-slate-800">
     <p className="text-white text-lg">Loading...</p>
-  </div>
-);
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+  </div>;
+const App = () => <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Index />} className="bg-black" />
             <Route path="/request" element={<Request />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />
@@ -38,7 +31,5 @@ const App = () => (
         </Suspense>
       </BrowserRouter>
     </TooltipProvider>
-  </QueryClientProvider>
-);
-
+  </QueryClientProvider>;
 export default App;
