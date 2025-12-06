@@ -21,7 +21,7 @@ const App = () => <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<Index />} className="bg-black" />
+            <Route path="/" element={<Index />} className="bg-gray-900" />
             <Route path="/request" element={<Request />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<AdminDashboard />} />
