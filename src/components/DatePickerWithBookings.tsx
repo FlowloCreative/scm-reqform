@@ -1,9 +1,9 @@
 import * as React from "react";
-import { format, parseISO, isWithinInterval, isBefore, startOfDay, addDays } from "date-fns";
+import { format, parseISO, isWithinInterval, isBefore, startOfDay } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
+import { DayPicker, DayContentProps } from "react-day-picker";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
@@ -16,7 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { isOfficialOffDay, getOffDayReason, TIME_SLOTS } from "@/lib/myanmar-holidays";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface BookedPeriod {
   pickup_datetime: string;
@@ -59,8 +66,8 @@ export function DatePickerWithBookings({
 
   const selectedDate = value ? parseISO(value) : undefined;
 
-  const isDateBooked = (date: Date): boolean => {
-    if (!machineUnit) return false;
+  const getBookingForDate = (date: Date): BookedPeriod | null => {
+    if (!machineUnit) return null;
     
     const checkDate = startOfDay(date);
     
@@ -75,25 +82,26 @@ export function DatePickerWithBookings({
         checkDate.getTime() === bookedStart.getTime() ||
         checkDate.getTime() === bookedEnd.getTime()
       ) {
-        return true;
+        return booking;
       }
     }
-    return false;
+    return null;
+  };
+
+  const isDateBooked = (date: Date): boolean => {
+    return getBookingForDate(date) !== null;
   };
 
   const isDateDisabled = (date: Date): boolean => {
     const checkDate = startOfDay(date);
     
-    // Check min/max bounds
     if (minDate && isBefore(checkDate, startOfDay(minDate))) return true;
     if (maxDate && isBefore(startOfDay(maxDate), checkDate)) return true;
     
-    // Check weekends and holidays if required
     if ((excludeWeekends || excludeHolidays) && isOfficialOffDay(date)) {
       return true;
     }
     
-    // Check if booked
     return isDateBooked(date);
   };
 
@@ -106,7 +114,45 @@ export function DatePickerWithBookings({
     }
   };
 
-  // Custom modifiers for styling
+  const getTooltipContent = (date: Date): string | null => {
+    const booking = getBookingForDate(date);
+    if (booking) {
+      const pickupDate = format(parseISO(booking.pickup_datetime), "MMM d");
+      const returnDate = format(parseISO(booking.return_datetime), "MMM d");
+      return `Booked: ${pickupDate} - ${returnDate}`;
+    }
+    
+    if ((excludeWeekends || excludeHolidays) && isOfficialOffDay(date)) {
+      return getOffDayReason(date);
+    }
+    
+    return null;
+  };
+
+  // Custom day content with tooltip
+  const DayContent = (props: DayContentProps) => {
+    const { date, activeModifiers } = props;
+    const tooltipContent = getTooltipContent(date);
+    const isDisabledDay = activeModifiers.disabled;
+    
+    if (tooltipContent && isDisabledDay) {
+      return (
+        <Tooltip delayDuration={100}>
+          <TooltipTrigger asChild>
+            <span className="w-full h-full flex items-center justify-center">
+              {date.getDate()}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            {tooltipContent}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+    
+    return <span>{date.getDate()}</span>;
+  };
+
   const modifiers = {
     booked: (date: Date) => isDateBooked(date),
     offDay: (date: Date) => (excludeWeekends || excludeHolidays) && isOfficialOffDay(date),
@@ -142,16 +188,51 @@ export function DatePickerWithBookings({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleSelect}
-            disabled={isDateDisabled}
-            modifiers={modifiers}
-            modifiersStyles={modifiersStyles}
-            initialFocus
-            className="pointer-events-auto"
-          />
+          <TooltipProvider>
+            <DayPicker
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleSelect}
+              disabled={isDateDisabled}
+              modifiers={modifiers}
+              modifiersStyles={modifiersStyles}
+              showOutsideDays={true}
+              className="p-3 pointer-events-auto"
+              classNames={{
+                months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                month: "space-y-4",
+                caption: "flex justify-center pt-1 relative items-center",
+                caption_label: "text-sm font-medium",
+                nav: "space-x-1 flex items-center",
+                nav_button: cn(
+                  buttonVariants({ variant: "outline" }),
+                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                ),
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
+                table: "w-full border-collapse space-y-1",
+                head_row: "flex",
+                head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                row: "flex w-full mt-2",
+                cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                day: cn(buttonVariants({ variant: "ghost" }), "h-9 w-9 p-0 font-normal aria-selected:opacity-100"),
+                day_range_end: "day-range-end",
+                day_selected:
+                  "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                day_today: "bg-accent text-accent-foreground",
+                day_outside:
+                  "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                day_disabled: "text-muted-foreground opacity-50",
+                day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                day_hidden: "invisible",
+              }}
+              components={{
+                IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+                IconRight: () => <ChevronRight className="h-4 w-4" />,
+                DayContent: DayContent,
+              }}
+            />
+          </TooltipProvider>
           <div className="p-3 border-t text-xs text-muted-foreground space-y-1">
             {machineUnit && (
               <div className="flex items-center gap-2">
