@@ -160,6 +160,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_booking_periods: {
+        Args: { p_machine_unit?: string }
+        Returns: {
+          event_end_date: string
+          event_start_date: string
+          machine_unit: string
+          pickup_datetime: string
+          request_status: string
+          return_datetime: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
