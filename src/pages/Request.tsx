@@ -379,13 +379,50 @@ const Request = () => {
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
+                    <Label htmlFor="machineUnit" className="required">Select Machine Unit First</Label>
+                    <Select value={formData.machineUnit} onValueChange={value => {
+                      updateField("machineUnit", value);
+                      // Reset all dates when machine changes
+                      updateField("eventStartDate", "");
+                      updateField("eventEndDate", "");
+                      updateField("pickupDate", "");
+                      updateField("returnDate", "");
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select machine unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SCM-001-YGN">SCM-001-YGN</SelectItem>
+                        <SelectItem value="SCM-002-MDY">SCM-002-MDY</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Select machine to see availability</p>
+                  </div>
+                  <div></div>
+                  <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
-                    <DatePickerWithBookings value={formData.eventStartDate} onChange={date => handleEventStartChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={addDays(new Date(), 1)} placeholder="Select event start date" />
+                    <DatePickerWithBookings 
+                      value={formData.eventStartDate} 
+                      onChange={date => handleEventStartChange(date)} 
+                      bookedPeriods={bookedPeriods} 
+                      machineUnit={formData.machineUnit} 
+                      minDate={addDays(new Date(), 1)} 
+                      placeholder="Select event start date"
+                      disabled={!formData.machineUnit}
+                    />
                     <p className="text-xs text-muted-foreground mt-1">Must be from tomorrow onwards</p>
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
-                    <DatePickerWithBookings value={formData.eventEndDate} onChange={date => handleEventEndChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 1)} disabled={!formData.eventStartDate} placeholder="Select event end date" />
+                    <DatePickerWithBookings 
+                      value={formData.eventEndDate} 
+                      onChange={date => handleEventEndChange(date)} 
+                      bookedPeriods={bookedPeriods} 
+                      machineUnit={formData.machineUnit} 
+                      minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 1)} 
+                      disabled={!formData.eventStartDate} 
+                      placeholder="Select event end date"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="pickupDate" className="required">Pickup Date & Time</Label>
@@ -432,18 +469,6 @@ const Request = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-accent">4. Equipment Tracking</h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="machineUnit" className="required">Machine Unit ID</Label>
-                    <Select value={formData.machineUnit} onValueChange={value => updateField("machineUnit", value)} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SCM-001-YGN">SCM-001-YGN</SelectItem>
-                        <SelectItem value="SCM-002-MDY">SCM-002-MDY</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div>
                     <Label htmlFor="informTo" className="required">Inform To</Label>
                     <Select value={formData.informTo} onValueChange={value => updateField("informTo", value)} required>
