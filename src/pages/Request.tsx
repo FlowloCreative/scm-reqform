@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { format, addDays, subDays, parseISO, isWithinInterval, startOfDay } from "date-fns";
+import { addDays, subDays, parseISO, isWithinInterval, startOfDay } from "date-fns";
+import { isOfficialOffDay, getNextWorkingDay } from "@/lib/myanmar-holidays";
 import { CheckCircle, ArrowLeft, Loader2, LogOut } from "lucide-react";
 import { DatePickerWithBookings } from "@/components/DatePickerWithBookings";
 import { User } from "@supabase/supabase-js";
@@ -36,8 +37,10 @@ const Request = () => {
     eventName: "",
     location: "",
     expectedUsers: "",
-    pickupDateTime: "",
-    returnDateTime: "",
+    pickupDate: "",
+    pickupTime: "09:00",
+    returnDate: "",
+    returnTime: "16:00",
     eventStartDate: "",
     eventEndDate: "",
     machineUnit: "",
@@ -86,19 +89,6 @@ const Request = () => {
     fetchBookedPeriods();
   }, []);
 
-  // Calculate min/max dates based on event dates
-  const pickupMinDate = useMemo(() => {
-    if (!formData.eventStartDate) return "";
-    const eventStart = parseISO(formData.eventStartDate);
-    const minPickup = subDays(eventStart, 1);
-    return format(minPickup, "yyyy-MM-dd");
-  }, [formData.eventStartDate]);
-  const returnMinDate = useMemo(() => {
-    if (!formData.eventEndDate) return "";
-    const eventEnd = parseISO(formData.eventEndDate);
-    const minReturn = addDays(eventEnd, 1);
-    return format(minReturn, "yyyy-MM-dd");
-  }, [formData.eventEndDate]);
 
   // Check if pickup date conflicts with existing bookings
   const isDateAvailable = (pickupDate: string, returnDate: string, machineUnit: string): boolean => {
@@ -129,8 +119,12 @@ const Request = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Combine date and time for submission
+    const pickupDateTime = formData.pickupDate ? `${formData.pickupDate}T${formData.pickupTime}:00` : "";
+    const returnDateTime = formData.returnDate ? `${formData.returnDate}T${formData.returnTime}:00` : "";
+
     // Validate date availability
-    if (!isDateAvailable(formData.pickupDateTime, formData.returnDateTime, formData.machineUnit)) {
+    if (!isDateAvailable(formData.pickupDate, formData.returnDate, formData.machineUnit)) {
       toast.error("Selected dates conflict with an existing booking. Please choose different dates.");
       return;
     }
@@ -155,8 +149,8 @@ const Request = () => {
         event_name: formData.eventName,
         location: formData.location,
         expected_users: parseInt(formData.expectedUsers),
-        pickup_datetime: formData.pickupDateTime,
-        return_datetime: formData.returnDateTime,
+        pickup_datetime: pickupDateTime,
+        return_datetime: returnDateTime,
         event_start_date: formData.eventStartDate,
         event_end_date: formData.eventEndDate,
         machine_unit: formData.machineUnit,
@@ -193,13 +187,13 @@ const Request = () => {
   // Reset dependent fields when event dates change
   const handleEventStartChange = (value: string) => {
     updateField("eventStartDate", value);
-    updateField("pickupDateTime", "");
+    updateField("pickupDate", "");
     updateField("eventEndDate", "");
-    updateField("returnDateTime", "");
+    updateField("returnDate", "");
   };
   const handleEventEndChange = (value: string) => {
     updateField("eventEndDate", value);
-    updateField("returnDateTime", "");
+    updateField("returnDate", "");
   };
   // Show loading while checking auth
   if (checkingAuth) {
@@ -275,8 +269,10 @@ const Request = () => {
                 eventName: "",
                 location: "",
                 expectedUsers: "",
-                pickupDateTime: "",
-                returnDateTime: "",
+                pickupDate: "",
+                pickupTime: "09:00",
+                returnDate: "",
+                returnTime: "16:00",
                 eventStartDate: "",
                 eventEndDate: "",
                 machineUnit: "",
@@ -379,7 +375,7 @@ const Request = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-accent">3. Booking Schedule</h3>
                 <p className="text-sm text-muted-foreground">
-                  Select event dates first. Pickup is 1 day before event start, return is 1 day after event end.
+                  Select event dates first. Pickup is 1 day before event start (working day), return is 1 day after event end (working day). Weekends and Myanmar public holidays are unavailable for pickup/return.
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -392,18 +388,42 @@ const Request = () => {
                     <DatePickerWithBookings value={formData.eventEndDate} onChange={date => handleEventEndChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 1)} disabled={!formData.eventStartDate} placeholder="Select event end date" />
                   </div>
                   <div>
-                    <Label htmlFor="pickupDateTime" className="required">Pickup Date</Label>
-                    <DatePickerWithBookings value={formData.pickupDateTime} onChange={date => updateField("pickupDateTime", date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined} maxDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined} disabled={!formData.eventStartDate} placeholder="Select pickup date" />
-                    {formData.eventStartDate && <p className="text-xs text-muted-foreground mt-1">
-                        Available: {pickupMinDate}
-                      </p>}
+                    <Label htmlFor="pickupDate" className="required">Pickup Date & Time</Label>
+                    <DatePickerWithBookings 
+                      value={formData.pickupDate} 
+                      onChange={date => updateField("pickupDate", date)} 
+                      bookedPeriods={bookedPeriods} 
+                      machineUnit={formData.machineUnit} 
+                      minDate={formData.eventStartDate ? getNextWorkingDay(subDays(parseISO(formData.eventStartDate), 1), "backward") : undefined} 
+                      maxDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined} 
+                      disabled={!formData.eventStartDate} 
+                      placeholder="Select pickup date"
+                      showTime
+                      timeValue={formData.pickupTime}
+                      onTimeChange={(time) => updateField("pickupTime", time)}
+                      excludeWeekends
+                      excludeHolidays
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Working days only (Mon-Fri, no holidays)</p>
                   </div>
                   <div>
-                    <Label htmlFor="returnDateTime" className="required">Return Date</Label>
-                    <DatePickerWithBookings value={formData.returnDateTime} onChange={date => updateField("returnDateTime", date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined} maxDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined} disabled={!formData.eventEndDate} placeholder="Select return date" />
-                    {formData.eventEndDate && <p className="text-xs text-muted-foreground mt-1">
-                        Available: {returnMinDate}
-                      </p>}
+                    <Label htmlFor="returnDate" className="required">Return Date & Time</Label>
+                    <DatePickerWithBookings 
+                      value={formData.returnDate} 
+                      onChange={date => updateField("returnDate", date)} 
+                      bookedPeriods={bookedPeriods} 
+                      machineUnit={formData.machineUnit} 
+                      minDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined} 
+                      maxDate={formData.eventEndDate ? getNextWorkingDay(addDays(parseISO(formData.eventEndDate), 1), "forward") : undefined} 
+                      disabled={!formData.eventEndDate} 
+                      placeholder="Select return date"
+                      showTime
+                      timeValue={formData.returnTime}
+                      onTimeChange={(time) => updateField("returnTime", time)}
+                      excludeWeekends
+                      excludeHolidays
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Working days only (Mon-Fri, no holidays)</p>
                   </div>
                 </div>
               </div>
