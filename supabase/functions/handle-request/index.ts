@@ -56,7 +56,7 @@ const handler = async (req: Request): Promise<Response> => {
     const reviewUrl = `https://8f85b45b-80f0-42f2-8471-028dc93beed0.lovableproject.com/admin/review/${data.requestId}`;
 
     const emailResponse = await resend.emails.send({
-      from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
+      from: "Skin Check Request <noreply@mydomain.com>",
       to: [adminEmail],
       subject: `New Request: ${escapeHtml(data.requestId)} - ${escapeHtml(data.eventName)}`,
       html: `
@@ -112,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation to requester
     await resend.emails.send({
-      from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
+      from: "Skin Check Request <noreply@mydomain.com>",
       to: [data.email],
       subject: `Request Confirmation: ${escapeHtml(data.requestId)}`,
       html: `
