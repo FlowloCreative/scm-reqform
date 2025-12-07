@@ -1,78 +1,31 @@
-import { isWeekend, getDay, format, addDays, isBefore, isAfter, isSameDay } from "date-fns";
+import { getDay, format, addDays } from "date-fns";
 
-// Myanmar official holidays for 2024-2026
-// These include major public holidays - can be updated annually
-const MYANMAR_HOLIDAYS: string[] = [
-  // 2024
-  "2024-01-01", // New Year's Day
-  "2024-01-04", // Independence Day
-  "2024-02-12", // Union Day
-  "2024-03-02", // Peasants' Day
-  "2024-03-27", // Armed Forces Day
-  "2024-04-13", // Thingyan Start
-  "2024-04-14", // Thingyan
-  "2024-04-15", // Thingyan
-  "2024-04-16", // Thingyan
-  "2024-04-17", // Myanmar New Year
-  "2024-05-01", // May Day
-  "2024-05-22", // Kasone Full Moon
-  "2024-07-19", // Martyrs' Day
-  "2024-07-20", // Waso Full Moon
-  "2024-10-17", // Thadingyut Full Moon
-  "2024-10-18", // Thadingyut Holiday
-  "2024-10-19", // Thadingyut Holiday
-  "2024-11-15", // Tazaungdaing Full Moon
-  "2024-12-25", // Christmas
-  "2024-12-31", // New Year's Eve
-  
-  // 2025
-  "2025-01-01", // New Year's Day
-  "2025-01-04", // Independence Day
-  "2025-02-12", // Union Day
-  "2025-03-02", // Peasants' Day
-  "2025-03-27", // Armed Forces Day
-  "2025-04-13", // Thingyan Start
-  "2025-04-14", // Thingyan
-  "2025-04-15", // Thingyan
-  "2025-04-16", // Thingyan
-  "2025-04-17", // Myanmar New Year
-  "2025-05-01", // May Day
-  "2025-05-11", // Kasone Full Moon
-  "2025-07-19", // Martyrs' Day
-  "2025-07-10", // Waso Full Moon
-  "2025-10-06", // Thadingyut Full Moon
-  "2025-10-07", // Thadingyut Holiday
-  "2025-10-08", // Thadingyut Holiday
-  "2025-11-05", // Tazaungdaing Full Moon
-  "2025-12-25", // Christmas
-  "2025-12-31", // New Year's Eve
-  
-  // 2026
-  "2026-01-01", // New Year's Day
-  "2026-01-04", // Independence Day
-  "2026-02-12", // Union Day
-  "2026-03-02", // Peasants' Day
-  "2026-03-27", // Armed Forces Day
-  "2026-04-13", // Thingyan Start
-  "2026-04-14", // Thingyan
-  "2026-04-15", // Thingyan
-  "2026-04-16", // Thingyan
-  "2026-04-17", // Myanmar New Year
-  "2026-05-01", // May Day
-  "2026-05-30", // Kasone Full Moon
-  "2026-07-19", // Martyrs' Day
-  "2026-07-29", // Waso Full Moon
-  "2026-10-25", // Thadingyut Full Moon
-  "2026-10-26", // Thadingyut Holiday
-  "2026-10-27", // Thadingyut Holiday
-  "2026-11-23", // Tazaungdaing Full Moon
-  "2026-12-25", // Christmas
-  "2026-12-31", // New Year's Eve
+// Myanmar official holidays - month/day format for yearly recurrence
+// Saturdays, Sundays + Jan 1,4 | Feb 12,13 | Mar 27 | Apr 13-17 | May 1 | Jul 19 | Oct 14 | Nov 3,8,27 | Dec 25,30
+const MYANMAR_HOLIDAYS_BY_MONTH_DAY: string[] = [
+  "01-01", // New Year's Day
+  "01-04", // Independence Day
+  "02-12", // Union Day
+  "02-13", // Union Day Holiday
+  "03-27", // Armed Forces Day
+  "04-13", // Thingyan Start
+  "04-14", // Thingyan
+  "04-15", // Thingyan
+  "04-16", // Thingyan
+  "04-17", // Myanmar New Year
+  "05-01", // May Day
+  "07-19", // Martyrs' Day
+  "10-14", // Thadingyut
+  "11-03", // Tazaungdaing
+  "11-08", // National Day
+  "11-27", // Tazaungmon Full Moon
+  "12-25", // Christmas
+  "12-30", // Year End Holiday
 ];
 
 export const isMyanmarHoliday = (date: Date): boolean => {
-  const dateStr = format(date, "yyyy-MM-dd");
-  return MYANMAR_HOLIDAYS.includes(dateStr);
+  const monthDay = format(date, "MM-dd");
+  return MYANMAR_HOLIDAYS_BY_MONTH_DAY.includes(monthDay);
 };
 
 export const isOfficialOffDay = (date: Date): boolean => {
