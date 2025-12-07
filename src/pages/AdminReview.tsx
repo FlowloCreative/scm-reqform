@@ -16,6 +16,7 @@ const AdminReview = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [request, setRequest] = useState<any>(null);
   const [adminData, setAdminData] = useState({
     requestStatus: "Pending",
@@ -28,11 +29,34 @@ const AdminReview = () => {
   });
 
   useEffect(() => {
-    fetchRequest();
+    checkAuthAndFetch();
   }, [id]);
 
-  const fetchRequest = async () => {
+  const checkAuthAndFetch = async () => {
     try {
+      // First verify authentication and admin role
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!roleData) {
+        toast.error('Admin access required');
+        navigate('/');
+        return;
+      }
+
+      setIsAdmin(true);
+
+      // Now fetch the request data
       const { data, error } = await supabase
         .from("skin_check_requests")
         .select("*")
