@@ -372,10 +372,10 @@ const Request = () => {
                 <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-[#2366ac] bg-[#2366ac] font-serif text-center">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-[#2366ac] bg-[#2366ac] text-center font-sans">
               Skin Check Machine Request Form
             </CardTitle>
-            <CardDescription className="text-base text-center">Created by Dr.Mozz || Marketing Department</CardDescription>
+            <CardDescription className="text-base text-center">Created by Dr.Mozz || Creative Marketing Executive   </CardDescription>
           </CardHeader>
           <CardContent className="pt-8">
             <form onSubmit={handleSubmit} className="space-y-8">
@@ -429,7 +429,7 @@ const Request = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-inherit">3. Booking Schedule</h3>
                 <p className="text-sm text-muted-foreground">
-                  Select event dates first. Pickup is automatically calculated as 1 day before event start (working day), return is 1 day after event end (working day). Weekends and Myanmar public holidays are skipped.
+                  Select Machine Unit for available date.                                            
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -459,7 +459,7 @@ const Request = () => {
                   <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
                     <DatePickerWithBookings value={formData.eventStartDate} onChange={date => handleEventStartChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={addDays(new Date(), 2)} placeholder="Select event start date" disabled={!formData.machineUnit} />
-                    <p className="text-xs text-muted-foreground mt-1">Must be at least 2 days from today</p>
+                    <p className="text-xs text-muted-foreground mt-1 my-0">​               </p>
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
