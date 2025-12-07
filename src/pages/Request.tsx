@@ -474,12 +474,30 @@ const Request = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6" disabled={loading}>
+              {/* Desktop submit button */}
+              <Button type="submit" className="hidden sm:flex w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6" disabled={loading}>
                 {loading ? "Submitting..." : "Submit Request"}
               </Button>
             </form>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Mobile sticky submit button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border sm:hidden">
+        <Button 
+          type="button"
+          onClick={(e) => {
+            const form = document.querySelector('form');
+            if (form) {
+              form.requestSubmit();
+            }
+          }}
+          className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6" 
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Submit Request"}
+        </Button>
       </div>
     </div>;
 };
