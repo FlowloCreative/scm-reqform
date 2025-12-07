@@ -1,1 +1,7 @@
 project_id = "nacgkxhhqwmdhxmujyay"
+
+[functions.send-decision-email]
+verify_jwt = true
+
+[functions.update-google-sheet]
+verify_jwt = true
