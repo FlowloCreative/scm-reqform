@@ -41,7 +41,7 @@ const handler = async (req: Request): Promise<Response> => {
     const statusColor = isApproved ? "#10b981" : "#ef4444";
 
     const emailResponse = await resend.emails.send({
-      from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
+      from: "Skin Check Request <noreply@mydomain.com>",
       to: [data.email],
       subject: `Request ${escapeHtml(data.status)}: ${escapeHtml(data.requestId)}`,
       html: `
