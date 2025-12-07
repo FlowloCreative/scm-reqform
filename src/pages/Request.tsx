@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,15 +10,21 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { format, addDays, subDays, parseISO, isWithinInterval, startOfDay } from "date-fns";
-import { CheckCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { DatePickerWithBookings } from "@/components/DatePickerWithBookings";
+import { User } from "@supabase/supabase-js";
+
 interface BookedPeriod {
   pickup_datetime: string;
   return_datetime: string;
   machine_unit: string;
 }
+
 const Request = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [bookedPeriods, setBookedPeriods] = useState<BookedPeriod[]>([]);
   const [formData, setFormData] = useState({
@@ -40,6 +46,32 @@ const Request = () => {
     needTraining: "Yes",
     specialRequirements: ""
   });
+
+  // Check authentication status
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setCheckingAuth(false);
+        
+        // Pre-fill email if user is logged in
+        if (session?.user?.email) {
+          setFormData(prev => ({ ...prev, email: session.user.email || "" }));
+        }
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setCheckingAuth(false);
+      
+      if (session?.user?.email) {
+        setFormData(prev => ({ ...prev, email: session.user.email || "" }));
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Fetch confirmed bookings to check availability
   useEffect(() => {
@@ -102,6 +134,12 @@ const Request = () => {
       toast.error("Selected dates conflict with an existing booking. Please choose different dates.");
       return;
     }
+    if (!user) {
+      toast.error("You must be logged in to submit a request");
+      navigate("/auth");
+      return;
+    }
+
     setLoading(true);
     try {
       const requestId = `REQ-${Date.now().toString().slice(-8)}`;
@@ -125,7 +163,8 @@ const Request = () => {
         inform_to: formData.informTo,
         used_before: formData.usedBefore === "Yes",
         need_training: formData.needTraining === "Yes",
-        special_requirements: formData.specialRequirements || null
+        special_requirements: formData.specialRequirements || null,
+        created_by: user.id
       });
       if (error) throw error;
 
@@ -162,6 +201,51 @@ const Request = () => {
     updateField("eventEndDate", value);
     updateField("returnDateTime", "");
   };
+  // Show loading while checking auth
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
+        <Card className="glass-effect shadow-2xl max-w-md w-full">
+          <CardContent className="pt-8 pb-8 text-center space-y-4">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+            <p className="text-muted-foreground">Checking authentication...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Redirect to auth if not logged in
+  if (!user) {
+    return (
+      <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
+        <Card className="glass-effect shadow-2xl max-w-md w-full">
+          <CardContent className="pt-8 pb-8 text-center space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Login Required</h2>
+              <p className="text-muted-foreground">
+                You need to be logged in to submit a request.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Button asChild variant="default" className="w-full">
+                <Link to="/auth">
+                  Log In / Sign Up
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Home
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (submitted) {
     return <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
         <Card className="glass-effect shadow-2xl max-w-md w-full">
