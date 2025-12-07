@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -20,26 +21,29 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface RequestData {
-  requestId: string;
-  employeeName: string;
-  email: string;
-  department: string;
-  position: string;
-  phoneNumber: string;
-  eventName: string;
-  location: string;
-  expectedUsers: string;
-  pickupDateTime: string;
-  returnDateTime: string;
-  eventStartDate: string;
-  eventEndDate: string;
-  machineUnit: string;
-  informTo: string;
-  usedBefore: string;
-  needTraining: string;
-  specialRequirements?: string;
-}
+// Zod schema for input validation
+const requestSchema = z.object({
+  requestId: z.string().min(1, "Request ID is required").max(50, "Request ID too long"),
+  employeeName: z.string().min(1, "Employee name is required").max(100, "Employee name too long"),
+  email: z.string().email("Invalid email format").max(255, "Email too long"),
+  department: z.string().min(1, "Department is required").max(100, "Department too long"),
+  position: z.string().min(1, "Position is required").max(100, "Position too long"),
+  phoneNumber: z.string().min(1, "Phone number is required").max(20, "Phone number too long"),
+  eventName: z.string().min(1, "Event name is required").max(200, "Event name too long"),
+  location: z.string().min(1, "Location is required").max(300, "Location too long"),
+  expectedUsers: z.string().min(1, "Expected users is required").max(20, "Expected users value too long"),
+  pickupDateTime: z.string().min(1, "Pickup date/time is required"),
+  returnDateTime: z.string().min(1, "Return date/time is required"),
+  eventStartDate: z.string().min(1, "Event start date is required"),
+  eventEndDate: z.string().min(1, "Event end date is required"),
+  machineUnit: z.string().min(1, "Machine unit is required").max(50, "Machine unit too long"),
+  informTo: z.string().min(1, "Inform to is required").max(50, "Inform to value too long"),
+  usedBefore: z.string().min(1, "Used before is required").max(10, "Used before value too long"),
+  needTraining: z.string().min(1, "Need training is required").max(10, "Need training value too long"),
+  specialRequirements: z.string().max(1000, "Special requirements too long").optional(),
+});
+
+type RequestData = z.infer<typeof requestSchema>;
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -47,8 +51,23 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const data: RequestData = await req.json();
-    console.log("Processing request:", data.requestId);
+    const rawData = await req.json();
+    
+    // Validate input data
+    const parseResult = requestSchema.safeParse(rawData);
+    if (!parseResult.success) {
+      console.error("Validation failed:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Validation failed", 
+          details: parseResult.error.errors.map(e => ({ field: e.path.join('.'), message: e.message }))
+        }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    const data = parseResult.data;
+    console.log("Processing validated request:", data.requestId);
 
     // Send email to admin
     const adminEmail = data.informTo === "YGN-Admin" ? "flowlocreative@gmail.com" : "drmozzgaming@gmail.com";
