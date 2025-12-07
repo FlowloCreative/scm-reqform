@@ -15,13 +15,11 @@ import { CheckCircle, ArrowLeft, Loader2, LogOut, AlertCircle } from "lucide-rea
 import { DatePickerWithBookings } from "@/components/DatePickerWithBookings";
 import { User } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
-
 interface BookedPeriod {
   pickup_datetime: string;
   return_datetime: string;
   machine_unit: string;
 }
-
 const Request = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -54,34 +52,45 @@ const Request = () => {
 
   // Check authentication status
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
-        setCheckingAuth(false);
-        
-        // Pre-fill email if user is logged in
-        if (session?.user?.email) {
-          setFormData(prev => ({ ...prev, email: session.user.email || "" }));
-        }
+    const {
+      data: {
+        subscription
       }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       setCheckingAuth(false);
-      
+
+      // Pre-fill email if user is logged in
       if (session?.user?.email) {
-        setFormData(prev => ({ ...prev, email: session.user.email || "" }));
+        setFormData(prev => ({
+          ...prev,
+          email: session.user.email || ""
+        }));
       }
     });
-
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
+      setUser(session?.user ?? null);
+      setCheckingAuth(false);
+      if (session?.user?.email) {
+        setFormData(prev => ({
+          ...prev,
+          email: session.user.email || ""
+        }));
+      }
+    });
     return () => subscription.unsubscribe();
   }, []);
 
   // Fetch confirmed bookings to check availability using secure RPC function
   useEffect(() => {
     const fetchBookedPeriods = async () => {
-      const { data } = await supabase.rpc("get_booking_periods");
+      const {
+        data
+      } = await supabase.rpc("get_booking_periods");
       if (data) {
         setBookedPeriods(data.map((d: any) => ({
           pickup_datetime: d.pickup_datetime,
@@ -92,7 +101,6 @@ const Request = () => {
     };
     fetchBookedPeriods();
   }, []);
-
 
   // Calculate pickup date (Event Start - 1 day, skip to previous working day)
   const calculatedPickupDate = useMemo(() => {
@@ -115,28 +123,30 @@ const Request = () => {
   // Check if calculated dates conflict with existing bookings
   const checkDateConflicts = useMemo(() => {
     if (!calculatedPickupDate || !calculatedReturnDate || !formData.machineUnit) {
-      return { hasConflict: false, message: null };
+      return {
+        hasConflict: false,
+        message: null
+      };
     }
-
     const pickupStart = startOfDay(calculatedPickupDate);
     const returnEnd = startOfDay(calculatedReturnDate);
 
     // Get all dates in the range from pickup to return
-    const allDatesInRange = eachDayOfInterval({ start: pickupStart, end: returnEnd });
-
+    const allDatesInRange = eachDayOfInterval({
+      start: pickupStart,
+      end: returnEnd
+    });
     for (const booking of bookedPeriods) {
       if (booking.machine_unit !== formData.machineUnit) continue;
-
       const bookedPickup = startOfDay(parseISO(booking.pickup_datetime));
       const bookedReturn = startOfDay(parseISO(booking.return_datetime));
 
       // Check if any date in our range overlaps with existing booking
       for (const dateToCheck of allDatesInRange) {
-        if (
-          isWithinInterval(dateToCheck, { start: bookedPickup, end: bookedReturn }) ||
-          dateToCheck.getTime() === bookedPickup.getTime() ||
-          dateToCheck.getTime() === bookedReturn.getTime()
-        ) {
+        if (isWithinInterval(dateToCheck, {
+          start: bookedPickup,
+          end: bookedReturn
+        }) || dateToCheck.getTime() === bookedPickup.getTime() || dateToCheck.getTime() === bookedReturn.getTime()) {
           const pickupFormatted = format(calculatedPickupDate, "MMM d, yyyy");
           const returnFormatted = format(calculatedReturnDate, "MMM d, yyyy");
           const conflictDateFormatted = format(dateToCheck, "MMM d, yyyy");
@@ -147,8 +157,10 @@ const Request = () => {
         }
       }
     }
-
-    return { hasConflict: false, message: null };
+    return {
+      hasConflict: false,
+      message: null
+    };
   }, [calculatedPickupDate, calculatedReturnDate, formData.machineUnit, bookedPeriods]);
 
   // Update pickup and return dates when event dates change
@@ -186,7 +198,6 @@ const Request = () => {
       navigate("/auth");
       return;
     }
-
     setLoading(true);
     try {
       const requestId = `REQ-${Date.now().toString().slice(-8)}`;
@@ -248,7 +259,6 @@ const Request = () => {
     }));
     setDateConflictError(null);
   };
-  
   const handleEventEndChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -257,22 +267,19 @@ const Request = () => {
   };
   // Show loading while checking auth
   if (checkingAuth) {
-    return (
-      <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
+    return <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
         <Card className="glass-effect shadow-2xl max-w-md w-full">
           <CardContent className="pt-8 pb-8 text-center space-y-4">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
             <p className="text-muted-foreground">Checking authentication...</p>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
 
   // Redirect to auth if not logged in
   if (!user) {
-    return (
-      <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
+    return <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
         <Card className="glass-effect shadow-2xl max-w-md w-full">
           <CardContent className="pt-8 pb-8 text-center space-y-6">
             <div>
@@ -296,10 +303,8 @@ const Request = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
   if (submitted) {
     return <div className="min-h-screen gradient-bg py-8 px-4 flex items-center justify-center">
         <Card className="glass-effect shadow-2xl max-w-md w-full">
@@ -353,27 +358,16 @@ const Request = () => {
     await supabase.auth.signOut();
     navigate("/");
   };
-
   return <div className="min-h-screen gradient-bg py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="glass-effect shadow-2xl">
           <CardHeader className="border-b border-primary/20 pb-6">
             <div className="flex justify-between items-start mb-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/")}
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Home
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <Button variant="outline" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
                 <LogOut className="w-4 h-4 mr-1" />
                 <span className="hidden sm:inline">Logout</span>
               </Button>
@@ -387,7 +381,7 @@ const Request = () => {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Section 1: Requested By */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">1. Requested By</h3>
+                <h3 className="text-lg font-semibold text-inherit">1. Requested By</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="employeeName" className="required">Name</Label>
@@ -414,7 +408,7 @@ const Request = () => {
 
               {/* Section 2: Event Details */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">2. Event/Usage Details</h3>
+                <h3 className="text-lg font-semibold text-inherit">2. Event/Usage Details</h3>
                 <div>
                   <Label htmlFor="eventName" className="required">Event/Promotion Name</Label>
                   <Input id="eventName" value={formData.eventName} onChange={e => updateField("eventName", e.target.value)} required />
@@ -433,7 +427,7 @@ const Request = () => {
 
               {/* Section 3: Booking Schedule */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">3. Booking Schedule</h3>
+                <h3 className="text-lg font-semibold text-inherit">3. Booking Schedule</h3>
                 <p className="text-sm text-muted-foreground">
                   Select event dates first. Pickup is automatically calculated as 1 day before event start (working day), return is 1 day after event end (working day). Weekends and Myanmar public holidays are skipped.
                 </p>
@@ -441,16 +435,16 @@ const Request = () => {
                   <div>
                     <Label htmlFor="machineUnit" className="required">Select Machine Unit First</Label>
                     <Select value={formData.machineUnit} onValueChange={value => {
-                      setFormData(prev => ({
-                        ...prev,
-                        machineUnit: value,
-                        eventStartDate: "",
-                        eventEndDate: "",
-                        pickupDate: "",
-                        returnDate: ""
-                      }));
-                      setDateConflictError(null);
-                    }}>
+                    setFormData(prev => ({
+                      ...prev,
+                      machineUnit: value,
+                      eventStartDate: "",
+                      eventEndDate: "",
+                      pickupDate: "",
+                      returnDate: ""
+                    }));
+                    setDateConflictError(null);
+                  }}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select machine unit" />
                       </SelectTrigger>
@@ -464,59 +458,28 @@ const Request = () => {
                   <div></div>
                   <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
-                    <DatePickerWithBookings 
-                      value={formData.eventStartDate} 
-                      onChange={date => handleEventStartChange(date)} 
-                      bookedPeriods={bookedPeriods} 
-                      machineUnit={formData.machineUnit} 
-                      minDate={addDays(new Date(), 2)} 
-                      placeholder="Select event start date"
-                      disabled={!formData.machineUnit}
-                    />
+                    <DatePickerWithBookings value={formData.eventStartDate} onChange={date => handleEventStartChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={addDays(new Date(), 2)} placeholder="Select event start date" disabled={!formData.machineUnit} />
                     <p className="text-xs text-muted-foreground mt-1">Must be at least 2 days from today</p>
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
-                    <DatePickerWithBookings 
-                      value={formData.eventEndDate} 
-                      onChange={date => handleEventEndChange(date)} 
-                      bookedPeriods={bookedPeriods} 
-                      machineUnit={formData.machineUnit} 
-                      minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 2)} 
-                      disabled={!formData.eventStartDate} 
-                      placeholder="Select event end date"
-                    />
+                    <DatePickerWithBookings value={formData.eventEndDate} onChange={date => handleEventEndChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 2)} disabled={!formData.eventStartDate} placeholder="Select event end date" />
                   </div>
                 </div>
                 
                 {/* Date conflict error message */}
-                {dateConflictError && (
-                  <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                {dateConflictError && <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
                     <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-destructive">{dateConflictError}</p>
-                  </div>
-                )}
+                  </div>}
                 
                 {/* Auto-calculated pickup and return dates */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="pickupDate" className="required">Pickup Date & Time</Label>
                     <div className="flex gap-2 flex-col sm:flex-row">
-                      <Input 
-                        id="pickupDate"
-                        value={formData.pickupDate ? format(parseISO(formData.pickupDate), "PPP") : ""}
-                        placeholder="Auto-calculated from event start"
-                        disabled
-                        className={cn(
-                          "bg-muted/50",
-                          dateConflictError && "border-destructive/50"
-                        )}
-                      />
-                      <Select
-                        value={formData.pickupTime}
-                        onValueChange={(time) => updateField("pickupTime", time)}
-                        disabled={!formData.pickupDate}
-                      >
+                      <Input id="pickupDate" value={formData.pickupDate ? format(parseISO(formData.pickupDate), "PPP") : ""} placeholder="Auto-calculated from event start" disabled className={cn("bg-muted/50", dateConflictError && "border-destructive/50")} />
+                      <Select value={formData.pickupTime} onValueChange={time => updateField("pickupTime", time)} disabled={!formData.pickupDate}>
                         <SelectTrigger className="w-full sm:w-[140px]">
                           <SelectValue placeholder="Time" />
                         </SelectTrigger>
@@ -533,29 +496,14 @@ const Request = () => {
                       </Select>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {calculatedPickupDate && !dateConflictError 
-                        ? `Calculated: 1 working day before event start`
-                        : "Select event dates to calculate pickup date"}
+                      {calculatedPickupDate && !dateConflictError ? `Calculated: 1 working day before event start` : "Select event dates to calculate pickup date"}
                     </p>
                   </div>
                   <div>
                     <Label htmlFor="returnDate" className="required">Return Date & Time</Label>
                     <div className="flex gap-2 flex-col sm:flex-row">
-                      <Input 
-                        id="returnDate"
-                        value={formData.returnDate ? format(parseISO(formData.returnDate), "PPP") : ""}
-                        placeholder="Auto-calculated from event end"
-                        disabled
-                        className={cn(
-                          "bg-muted/50",
-                          dateConflictError && "border-destructive/50"
-                        )}
-                      />
-                      <Select
-                        value={formData.returnTime}
-                        onValueChange={(time) => updateField("returnTime", time)}
-                        disabled={!formData.returnDate}
-                      >
+                      <Input id="returnDate" value={formData.returnDate ? format(parseISO(formData.returnDate), "PPP") : ""} placeholder="Auto-calculated from event end" disabled className={cn("bg-muted/50", dateConflictError && "border-destructive/50")} />
+                      <Select value={formData.returnTime} onValueChange={time => updateField("returnTime", time)} disabled={!formData.returnDate}>
                         <SelectTrigger className="w-full sm:w-[140px]">
                           <SelectValue placeholder="Time" />
                         </SelectTrigger>
@@ -572,9 +520,7 @@ const Request = () => {
                       </Select>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {calculatedReturnDate && !dateConflictError 
-                        ? `Calculated: 1 working day after event end`
-                        : "Select event dates to calculate return date"}
+                      {calculatedReturnDate && !dateConflictError ? `Calculated: 1 working day after event end` : "Select event dates to calculate return date"}
                     </p>
                   </div>
                 </div>
@@ -582,7 +528,7 @@ const Request = () => {
 
               {/* Section 4: Equipment Tracking */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">4. Equipment Tracking</h3>
+                <h3 className="text-lg font-semibold text-inherit">4. Equipment Tracking</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="informTo" className="required">Inform To</Label>
@@ -601,7 +547,7 @@ const Request = () => {
 
               {/* Section 5: Usage Requirements */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-accent">5. Usage Requirements</h3>
+                <h3 className="text-lg font-semibold text-inherit">5. Usage Requirements</h3>
                 <div>
                   <Label className="required">Have you used this machine before?</Label>
                   <RadioGroup value={formData.usedBefore} onValueChange={value => updateField("usedBefore", value)} className="flex gap-4 mt-2">
