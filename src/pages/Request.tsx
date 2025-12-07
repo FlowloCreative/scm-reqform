@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { format, addDays, subDays, parseISO, isWithinInterval, startOfDay } from "date-fns";
-import { CheckCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { CheckCircle, ArrowLeft, Loader2, LogOut } from "lucide-react";
 import { DatePickerWithBookings } from "@/components/DatePickerWithBookings";
 import { User } from "@supabase/supabase-js";
 
@@ -293,14 +293,39 @@ const Request = () => {
         </Card>
       </div>;
   }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
   return <div className="min-h-screen gradient-bg py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="glass-effect shadow-2xl">
-          <CardHeader className="text-center border-b border-primary/20 pb-6">
+          <CardHeader className="border-b border-primary/20 pb-6">
+            <div className="flex justify-between items-start mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                Home
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </div>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-[#2366ac] bg-[#2366ac] font-serif text-center">
               Skin Check Machine Request Form
             </CardTitle>
-            <CardDescription className="text-base">Created by Dr.Mozz || Marketing Department</CardDescription>
+            <CardDescription className="text-base text-center">Created by Dr.Mozz || Marketing Department</CardDescription>
           </CardHeader>
           <CardContent className="pt-8">
             <form onSubmit={handleSubmit} className="space-y-8">
