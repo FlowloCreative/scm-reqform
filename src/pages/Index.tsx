@@ -18,28 +18,28 @@ const Index = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/request")}>
+          <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/auth")}>
             <CardHeader className="text-center pb-4">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4">
                 <FileText className="w-8 h-8 text-white" />
               </div>
               <CardTitle className="text-2xl">Submit Request</CardTitle>
-              <CardDescription className="text-base">Request a skin check machine for your event</CardDescription>
+              <CardDescription className="text-base">Login to request a skin check machine</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6">
-                New Request
+                Requester Login
               </Button>
             </CardContent>
           </Card>
 
-          <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/admin")}>
+          <Card className="glass-effect hover:shadow-2xl transition-all cursor-pointer" onClick={() => navigate("/admin/login")}>
             <CardHeader className="text-center pb-4">
               <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mb-4">
                 <UserCog className="w-8 h-8 text-white" />
               </div>
               <CardTitle className="text-2xl">Admin Portal</CardTitle>
-              <CardDescription className="text-base">Review and manage booking requests</CardDescription>
+              <CardDescription className="text-base">Admin login to manage requests</CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg py-6">
