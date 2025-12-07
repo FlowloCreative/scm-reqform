@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,11 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { addDays, subDays, parseISO, isWithinInterval, startOfDay } from "date-fns";
+import { addDays, subDays, parseISO, isWithinInterval, startOfDay, format, eachDayOfInterval } from "date-fns";
 import { isOfficialOffDay, getNextWorkingDay } from "@/lib/myanmar-holidays";
-import { CheckCircle, ArrowLeft, Loader2, LogOut } from "lucide-react";
+import { CheckCircle, ArrowLeft, Loader2, LogOut, AlertCircle } from "lucide-react";
 import { DatePickerWithBookings } from "@/components/DatePickerWithBookings";
 import { User } from "@supabase/supabase-js";
+import { cn } from "@/lib/utils";
 
 interface BookedPeriod {
   pickup_datetime: string;
@@ -28,6 +29,7 @@ const Request = () => {
   const [user, setUser] = useState<User | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [bookedPeriods, setBookedPeriods] = useState<BookedPeriod[]>([]);
+  const [dateConflictError, setDateConflictError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     employeeName: "",
     department: "",
@@ -92,32 +94,81 @@ const Request = () => {
   }, []);
 
 
-  // Check if pickup date conflicts with existing bookings
-  const isDateAvailable = (pickupDate: string, returnDate: string, machineUnit: string): boolean => {
-    if (!pickupDate || !returnDate || !machineUnit) return true;
-    const pickup = startOfDay(parseISO(pickupDate));
-    const returnD = startOfDay(parseISO(returnDate));
+  // Calculate pickup date (Event Start - 1 day, skip to previous working day)
+  const calculatedPickupDate = useMemo(() => {
+    if (!formData.eventStartDate) return null;
+    const eventStart = parseISO(formData.eventStartDate);
+    const dayBefore = subDays(eventStart, 1);
+    // If the day before is a weekend/holiday, find the previous working day
+    return getNextWorkingDay(dayBefore, "backward");
+  }, [formData.eventStartDate]);
+
+  // Calculate return date (Event End + 1 day, skip to next working day)
+  const calculatedReturnDate = useMemo(() => {
+    if (!formData.eventEndDate) return null;
+    const eventEnd = parseISO(formData.eventEndDate);
+    const dayAfter = addDays(eventEnd, 1);
+    // If the day after is a weekend/holiday, find the next working day
+    return getNextWorkingDay(dayAfter, "forward");
+  }, [formData.eventEndDate]);
+
+  // Check if calculated dates conflict with existing bookings
+  const checkDateConflicts = useMemo(() => {
+    if (!calculatedPickupDate || !calculatedReturnDate || !formData.machineUnit) {
+      return { hasConflict: false, message: null };
+    }
+
+    const pickupStart = startOfDay(calculatedPickupDate);
+    const returnEnd = startOfDay(calculatedReturnDate);
+
+    // Get all dates in the range from pickup to return
+    const allDatesInRange = eachDayOfInterval({ start: pickupStart, end: returnEnd });
+
     for (const booking of bookedPeriods) {
-      if (booking.machine_unit !== machineUnit) continue;
+      if (booking.machine_unit !== formData.machineUnit) continue;
+
       const bookedPickup = startOfDay(parseISO(booking.pickup_datetime));
       const bookedReturn = startOfDay(parseISO(booking.return_datetime));
 
-      // Check if there's any overlap
-      if (isWithinInterval(pickup, {
-        start: bookedPickup,
-        end: bookedReturn
-      }) || isWithinInterval(returnD, {
-        start: bookedPickup,
-        end: bookedReturn
-      }) || isWithinInterval(bookedPickup, {
-        start: pickup,
-        end: returnD
-      })) {
-        return false;
+      // Check if any date in our range overlaps with existing booking
+      for (const dateToCheck of allDatesInRange) {
+        if (
+          isWithinInterval(dateToCheck, { start: bookedPickup, end: bookedReturn }) ||
+          dateToCheck.getTime() === bookedPickup.getTime() ||
+          dateToCheck.getTime() === bookedReturn.getTime()
+        ) {
+          const pickupFormatted = format(calculatedPickupDate, "MMM d, yyyy");
+          const returnFormatted = format(calculatedReturnDate, "MMM d, yyyy");
+          const conflictDateFormatted = format(dateToCheck, "MMM d, yyyy");
+          return {
+            hasConflict: true,
+            message: `Equipment unavailable for selected dates. The date ${conflictDateFormatted} (between Pickup: ${pickupFormatted} and Return: ${returnFormatted}) conflicts with an existing booking. Please choose different event dates.`
+          };
+        }
       }
     }
-    return true;
-  };
+
+    return { hasConflict: false, message: null };
+  }, [calculatedPickupDate, calculatedReturnDate, formData.machineUnit, bookedPeriods]);
+
+  // Update pickup and return dates when event dates change
+  useEffect(() => {
+    if (calculatedPickupDate && calculatedReturnDate && !checkDateConflicts.hasConflict) {
+      setFormData(prev => ({
+        ...prev,
+        pickupDate: format(calculatedPickupDate, "yyyy-MM-dd"),
+        returnDate: format(calculatedReturnDate, "yyyy-MM-dd")
+      }));
+      setDateConflictError(null);
+    } else if (checkDateConflicts.hasConflict) {
+      setFormData(prev => ({
+        ...prev,
+        pickupDate: "",
+        returnDate: ""
+      }));
+      setDateConflictError(checkDateConflicts.message);
+    }
+  }, [calculatedPickupDate, calculatedReturnDate, checkDateConflicts]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -125,9 +176,9 @@ const Request = () => {
     const pickupDateTime = formData.pickupDate ? `${formData.pickupDate}T${formData.pickupTime}:00` : "";
     const returnDateTime = formData.returnDate ? `${formData.returnDate}T${formData.returnTime}:00` : "";
 
-    // Validate date availability
-    if (!isDateAvailable(formData.pickupDate, formData.returnDate, formData.machineUnit)) {
-      toast.error("Selected dates conflict with an existing booking. Please choose different dates.");
+    // Validate date availability (already handled by checkDateConflicts)
+    if (checkDateConflicts.hasConflict) {
+      toast.error("Selected dates conflict with an existing booking. Please choose different event dates.");
       return;
     }
     if (!user) {
@@ -188,14 +239,21 @@ const Request = () => {
 
   // Reset dependent fields when event dates change
   const handleEventStartChange = (value: string) => {
-    updateField("eventStartDate", value);
-    updateField("pickupDate", "");
-    updateField("eventEndDate", "");
-    updateField("returnDate", "");
+    setFormData(prev => ({
+      ...prev,
+      eventStartDate: value,
+      eventEndDate: "",
+      pickupDate: "",
+      returnDate: ""
+    }));
+    setDateConflictError(null);
   };
+  
   const handleEventEndChange = (value: string) => {
-    updateField("eventEndDate", value);
-    updateField("returnDate", "");
+    setFormData(prev => ({
+      ...prev,
+      eventEndDate: value
+    }));
   };
   // Show loading while checking auth
   if (checkingAuth) {
@@ -377,18 +435,21 @@ const Request = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-accent">3. Booking Schedule</h3>
                 <p className="text-sm text-muted-foreground">
-                  Select event dates first. Pickup is 1 day before event start (working day), return is 1 day after event end (working day). Weekends and Myanmar public holidays are unavailable for pickup/return.
+                  Select event dates first. Pickup is automatically calculated as 1 day before event start (working day), return is 1 day after event end (working day). Weekends and Myanmar public holidays are skipped.
                 </p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="machineUnit" className="required">Select Machine Unit First</Label>
                     <Select value={formData.machineUnit} onValueChange={value => {
-                      updateField("machineUnit", value);
-                      // Reset all dates when machine changes
-                      updateField("eventStartDate", "");
-                      updateField("eventEndDate", "");
-                      updateField("pickupDate", "");
-                      updateField("returnDate", "");
+                      setFormData(prev => ({
+                        ...prev,
+                        machineUnit: value,
+                        eventStartDate: "",
+                        eventEndDate: "",
+                        pickupDate: "",
+                        returnDate: ""
+                      }));
+                      setDateConflictError(null);
                     }}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select machine unit" />
@@ -408,11 +469,11 @@ const Request = () => {
                       onChange={date => handleEventStartChange(date)} 
                       bookedPeriods={bookedPeriods} 
                       machineUnit={formData.machineUnit} 
-                      minDate={addDays(new Date(), 1)} 
+                      minDate={addDays(new Date(), 2)} 
                       placeholder="Select event start date"
                       disabled={!formData.machineUnit}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Must be from tomorrow onwards</p>
+                    <p className="text-xs text-muted-foreground mt-1">Must be at least 2 days from today</p>
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
@@ -421,48 +482,100 @@ const Request = () => {
                       onChange={date => handleEventEndChange(date)} 
                       bookedPeriods={bookedPeriods} 
                       machineUnit={formData.machineUnit} 
-                      minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 1)} 
+                      minDate={formData.eventStartDate ? parseISO(formData.eventStartDate) : addDays(new Date(), 2)} 
                       disabled={!formData.eventStartDate} 
                       placeholder="Select event end date"
                     />
                   </div>
+                </div>
+                
+                {/* Date conflict error message */}
+                {dateConflictError && (
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
+                    <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-destructive">{dateConflictError}</p>
+                  </div>
+                )}
+                
+                {/* Auto-calculated pickup and return dates */}
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="pickupDate" className="required">Pickup Date & Time</Label>
-                    <DatePickerWithBookings 
-                      value={formData.pickupDate} 
-                      onChange={date => updateField("pickupDate", date)} 
-                      bookedPeriods={bookedPeriods} 
-                      machineUnit={formData.machineUnit} 
-                      minDate={formData.eventStartDate ? getNextWorkingDay(subDays(parseISO(formData.eventStartDate), 1), "backward") : undefined} 
-                      maxDate={formData.eventStartDate ? subDays(parseISO(formData.eventStartDate), 1) : undefined} 
-                      disabled={!formData.eventStartDate} 
-                      placeholder="Select pickup date"
-                      showTime
-                      timeValue={formData.pickupTime}
-                      onTimeChange={(time) => updateField("pickupTime", time)}
-                      excludeWeekends
-                      excludeHolidays
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">Working days only (Mon-Fri, no holidays)</p>
+                    <div className="flex gap-2 flex-col sm:flex-row">
+                      <Input 
+                        id="pickupDate"
+                        value={formData.pickupDate ? format(parseISO(formData.pickupDate), "PPP") : ""}
+                        placeholder="Auto-calculated from event start"
+                        disabled
+                        className={cn(
+                          "bg-muted/50",
+                          dateConflictError && "border-destructive/50"
+                        )}
+                      />
+                      <Select
+                        value={formData.pickupTime}
+                        onValueChange={(time) => updateField("pickupTime", time)}
+                        disabled={!formData.pickupDate}
+                      >
+                        <SelectTrigger className="w-full sm:w-[140px]">
+                          <SelectValue placeholder="Time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="09:00">9:00 AM</SelectItem>
+                          <SelectItem value="10:00">10:00 AM</SelectItem>
+                          <SelectItem value="11:00">11:00 AM</SelectItem>
+                          <SelectItem value="12:00">12:00 PM</SelectItem>
+                          <SelectItem value="13:00">1:00 PM</SelectItem>
+                          <SelectItem value="14:00">2:00 PM</SelectItem>
+                          <SelectItem value="15:00">3:00 PM</SelectItem>
+                          <SelectItem value="16:00">4:00 PM</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {calculatedPickupDate && !dateConflictError 
+                        ? `Calculated: 1 working day before event start`
+                        : "Select event dates to calculate pickup date"}
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="returnDate" className="required">Return Date & Time</Label>
-                    <DatePickerWithBookings 
-                      value={formData.returnDate} 
-                      onChange={date => updateField("returnDate", date)} 
-                      bookedPeriods={bookedPeriods} 
-                      machineUnit={formData.machineUnit} 
-                      minDate={formData.eventEndDate ? addDays(parseISO(formData.eventEndDate), 1) : undefined} 
-                      maxDate={formData.eventEndDate ? getNextWorkingDay(addDays(parseISO(formData.eventEndDate), 1), "forward") : undefined} 
-                      disabled={!formData.eventEndDate} 
-                      placeholder="Select return date"
-                      showTime
-                      timeValue={formData.returnTime}
-                      onTimeChange={(time) => updateField("returnTime", time)}
-                      excludeWeekends
-                      excludeHolidays
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">Working days only (Mon-Fri, no holidays)</p>
+                    <div className="flex gap-2 flex-col sm:flex-row">
+                      <Input 
+                        id="returnDate"
+                        value={formData.returnDate ? format(parseISO(formData.returnDate), "PPP") : ""}
+                        placeholder="Auto-calculated from event end"
+                        disabled
+                        className={cn(
+                          "bg-muted/50",
+                          dateConflictError && "border-destructive/50"
+                        )}
+                      />
+                      <Select
+                        value={formData.returnTime}
+                        onValueChange={(time) => updateField("returnTime", time)}
+                        disabled={!formData.returnDate}
+                      >
+                        <SelectTrigger className="w-full sm:w-[140px]">
+                          <SelectValue placeholder="Time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="09:00">9:00 AM</SelectItem>
+                          <SelectItem value="10:00">10:00 AM</SelectItem>
+                          <SelectItem value="11:00">11:00 AM</SelectItem>
+                          <SelectItem value="12:00">12:00 PM</SelectItem>
+                          <SelectItem value="13:00">1:00 PM</SelectItem>
+                          <SelectItem value="14:00">2:00 PM</SelectItem>
+                          <SelectItem value="15:00">3:00 PM</SelectItem>
+                          <SelectItem value="16:00">4:00 PM</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {calculatedReturnDate && !dateConflictError 
+                        ? `Calculated: 1 working day after event end`
+                        : "Select event dates to calculate return date"}
+                    </p>
                   </div>
                 </div>
               </div>
