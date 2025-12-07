@@ -76,14 +76,16 @@ const Request = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch confirmed bookings to check availability
+  // Fetch confirmed bookings to check availability using secure RPC function
   useEffect(() => {
     const fetchBookedPeriods = async () => {
-      const {
-        data
-      } = await supabase.from("skin_check_requests").select("pickup_datetime, return_datetime, machine_unit").in("request_status", ["Approved", "Pending"]);
+      const { data } = await supabase.rpc("get_booking_periods");
       if (data) {
-        setBookedPeriods(data);
+        setBookedPeriods(data.map((d: any) => ({
+          pickup_datetime: d.pickup_datetime,
+          return_datetime: d.return_datetime,
+          machine_unit: d.machine_unit
+        })));
       }
     };
     fetchBookedPeriods();
