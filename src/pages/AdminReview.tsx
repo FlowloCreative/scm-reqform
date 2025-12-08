@@ -40,7 +40,7 @@ const AdminReview = () => {
         }
       } = await supabase.auth.getSession();
       if (!session) {
-        navigate('/auth');
+        navigate('/admin/login');
         return;
       }
       const {
