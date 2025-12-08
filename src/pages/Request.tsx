@@ -230,7 +230,23 @@ const Request = () => {
       await supabase.functions.invoke("handle-request", {
         body: {
           requestId,
-          ...formData
+          employeeName: formData.employeeName,
+          email: formData.email,
+          department: formData.department,
+          position: formData.position,
+          phoneNumber: formData.phoneNumber,
+          eventName: formData.eventName,
+          location: formData.location,
+          expectedUsers: formData.expectedUsers,
+          pickupDateTime,
+          returnDateTime,
+          eventStartDate: formData.eventStartDate,
+          eventEndDate: formData.eventEndDate,
+          machineUnit: formData.machineUnit,
+          informTo: formData.informTo,
+          usedBefore: formData.usedBefore,
+          needTraining: formData.needTraining,
+          specialRequirements: formData.specialRequirements
         }
       });
       toast.success("Request submitted successfully!");
