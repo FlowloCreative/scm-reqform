@@ -2,11 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { FileText, UserCog } from "lucide-react";
+import rohtoLogo from "@/assets/Rohto_Logo.png";
+
 const Index = () => {
   const navigate = useNavigate();
   return <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
       <div className="max-w-5xl w-full">
         <div className="text-center mb-12">
+          <img 
+            src={rohtoLogo} 
+            alt="Rohto Mentholatum Logo" 
+            className="mx-auto mb-6 h-24 object-contain"
+          />
           <h1 className="text-5xl font-bold text-white mb-4">
             Skin Check Machine
           </h1>
