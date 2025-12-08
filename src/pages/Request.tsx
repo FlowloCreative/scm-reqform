@@ -459,7 +459,7 @@ const Request = () => {
                   <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
                     <DatePickerWithBookings value={formData.eventStartDate} onChange={date => handleEventStartChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={addDays(new Date(), 2)} placeholder="Select event start date" disabled={!formData.machineUnit} />
-                    <p className="text-xs text-muted-foreground mt-1 my-0">​               </p>
+                    
                   </div>
                   <div>
                     <Label htmlFor="eventEndDate" className="required">Event End Date</Label>
@@ -495,9 +495,7 @@ const Request = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {calculatedPickupDate && !dateConflictError ? `Calculated: 1 working day before event start` : "Select event dates to calculate pickup date"}
-                    </p>
+                    
                   </div>
                   <div>
                     <Label htmlFor="returnDate" className="required">Return Date & Time</Label>
@@ -519,9 +517,7 @@ const Request = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {calculatedReturnDate && !dateConflictError ? `Calculated: 1 working day after event end` : "Select event dates to calculate return date"}
-                    </p>
+                    
                   </div>
                 </div>
               </div>
