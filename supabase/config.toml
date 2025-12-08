@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.update-google-sheet]
 verify_jwt = true
+
+[functions.handle-request]
+verify_jwt = true
