@@ -77,7 +77,7 @@ const Auth = () => {
             <ClipboardList className="h-12 w-12 text-primary" />
           </div>
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            {isLogin ? "Requester Login" : "Create Account"}
+            {isLogin ? "User Login" : "Create Account"}
           </CardTitle>
           <CardDescription>
             {isLogin ? "Sign in to submit equipment requests" : "Sign up to request equipment"}
