@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email to admin
     const adminEmail = data.informTo === "YGN-Admin" ? "flowlocreative@gmail.com" : "drmozzgaming@gmail.com";
     
-    const reviewUrl = `https://8f85b45b-80f0-42f2-8471-028dc93beed0.lovableproject.com/admin/review/${data.requestId}`;
+    const reviewUrl = `https://id-preview--8f85b45b-80f0-42f2-8471-028dc93beed0.lovable.app/admin/review/${data.requestId}`;
 
     const emailResponse = await resend.emails.send({
       from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
