@@ -69,7 +69,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Validate input
     const rawData = await req.json();
-    const parseResult = updateSchema.safeParse(rawData);
+    
+    // Convert empty strings to null for optional enum fields
+    const sanitizedData = {
+      ...rawData,
+      conditionPickup: rawData.conditionPickup || null,
+      conditionReturn: rawData.conditionReturn || null,
+      actualReturnDateTime: rawData.actualReturnDateTime || null,
+      returnNotes: rawData.returnNotes || null,
+    };
+    
+    const parseResult = updateSchema.safeParse(sanitizedData);
     
     if (!parseResult.success) {
       console.error("Validation failed:", parseResult.error.errors);
