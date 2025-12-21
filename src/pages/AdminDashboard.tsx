@@ -26,15 +26,22 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-    fetchRequests();
+    const init = async () => {
+      const isAdminUser = await checkAuth();
+      if (isAdminUser) {
+        await fetchRequests();
+      } else {
+        setLoading(false);
+      }
+    };
+    init();
   }, []);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<boolean> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       navigate("/auth");
-      return;
+      return false;
     }
 
     const { data: roles } = await supabase
@@ -44,7 +51,9 @@ const AdminDashboard = () => {
       .eq("role", "admin")
       .maybeSingle();
 
-    setIsAdmin(!!roles);
+    const hasAdminRole = !!roles;
+    setIsAdmin(hasAdminRole);
+    return hasAdminRole;
   };
 
   const fetchRequests = async () => {

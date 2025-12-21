@@ -167,7 +167,6 @@ export type Database = {
           event_start_date: string
           machine_unit: string
           pickup_datetime: string
-          request_status: string
           return_datetime: string
         }[]
       }
