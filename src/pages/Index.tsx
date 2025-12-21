@@ -6,7 +6,7 @@ import rohtoLogo from "@/assets/Rohto_Logo.png";
 
 const Index = () => {
   const navigate = useNavigate();
-  return <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
+  return <main className="min-h-screen gradient-bg flex items-center justify-center p-4">
       <div className="max-w-5xl w-full">
         <div className="text-center mb-12">
           <img 
@@ -54,6 +54,6 @@ Dr.Mozz || Creative Marketing Executive || Marketing Department</p>
           </Card>
         </div>
       </div>
-    </div>;
+    </main>;
 };
 export default Index;
