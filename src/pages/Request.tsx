@@ -184,9 +184,10 @@ const Request = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Combine date and time for submission
-    const pickupDateTime = formData.pickupDate ? `${formData.pickupDate}T${formData.pickupTime}:00` : "";
-    const returnDateTime = formData.returnDate ? `${formData.returnDate}T${formData.returnTime}:00` : "";
+    // Combine date and time for submission - use explicit timezone offset
+    // We store the user's selected time as-is by appending +06:30 (Myanmar timezone)
+    const pickupDateTime = formData.pickupDate ? `${formData.pickupDate}T${formData.pickupTime}:00+06:30` : "";
+    const returnDateTime = formData.returnDate ? `${formData.returnDate}T${formData.returnTime}:00+06:30` : "";
 
     // Validate date availability (already handled by checkDateConflicts)
     if (checkDateConflicts.hasConflict) {
