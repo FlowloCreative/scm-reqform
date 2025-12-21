@@ -195,11 +195,11 @@ const AdminReview = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label>Pickup</Label>
-                    <Input value={new Date(request.pickup_datetime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })} disabled />
+                    <Input value={new Date(request.pickup_datetime).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })} disabled />
                   </div>
                   <div>
                     <Label>Return</Label>
-                    <Input value={new Date(request.return_datetime).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })} disabled />
+                    <Input value={new Date(request.return_datetime).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })} disabled />
                   </div>
                   <div>
                     <Label>Event Start</Label>
