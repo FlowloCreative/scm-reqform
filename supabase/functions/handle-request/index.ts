@@ -100,8 +100,8 @@ const handler = async (req: Request): Promise<Response> => {
         
         <h3>Schedule</h3>
         <ul>
-          <li><strong>Pickup:</strong> ${escapeHtml(new Date(data.pickupDateTime).toLocaleString())}</li>
-          <li><strong>Return:</strong> ${escapeHtml(new Date(data.returnDateTime).toLocaleString())}</li>
+          <li><strong>Pickup:</strong> ${escapeHtml(new Date(data.pickupDateTime).toLocaleString('en-US', { timeZone: 'Asia/Yangon', dateStyle: 'medium', timeStyle: 'short' }))}</li>
+          <li><strong>Return:</strong> ${escapeHtml(new Date(data.returnDateTime).toLocaleString('en-US', { timeZone: 'Asia/Yangon', dateStyle: 'medium', timeStyle: 'short' }))}</li>
           <li><strong>Event Dates:</strong> ${escapeHtml(data.eventStartDate)} to ${escapeHtml(data.eventEndDate)}</li>
         </ul>
         
@@ -144,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
           <li><strong>Request ID:</strong> ${escapeHtml(data.requestId)}</li>
           <li><strong>Event:</strong> ${escapeHtml(data.eventName)}</li>
           <li><strong>Location:</strong> ${escapeHtml(data.location)}</li>
-          <li><strong>Pickup:</strong> ${escapeHtml(new Date(data.pickupDateTime).toLocaleString())}</li>
+          <li><strong>Pickup:</strong> ${escapeHtml(new Date(data.pickupDateTime).toLocaleString('en-US', { timeZone: 'Asia/Yangon', dateStyle: 'medium', timeStyle: 'short' }))}</li>
         </ul>
         
         <p>You will receive an email once your request has been reviewed by the admin team.</p>
