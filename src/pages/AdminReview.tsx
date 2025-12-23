@@ -60,6 +60,18 @@ const AdminReview = () => {
       } = await supabase.from("skin_check_requests").select("*").eq("request_id", id).single();
       if (error) throw error;
       setRequest(data);
+      // Format datetime for datetime-local input (YYYY-MM-DDTHH:MM)
+      const formatDateTimeForInput = (dateStr: string | null) => {
+        if (!dateStr) return "";
+        const date = new Date(dateStr);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
+      
       setAdminData({
         requestStatus: data.request_status || "Pending",
         approvedBy: data.approved_by || "",
@@ -67,7 +79,7 @@ const AdminReview = () => {
         conditionPickup: data.condition_pickup || "",
         conditionReturn: data.condition_return || "",
         returnNotes: data.return_notes || "",
-        actualReturnDateTime: data.actual_return_datetime || ""
+        actualReturnDateTime: formatDateTimeForInput(data.actual_return_datetime)
       });
     } catch (error: any) {
       toast.error("Failed to load request");
