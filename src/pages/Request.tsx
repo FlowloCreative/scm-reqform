@@ -475,7 +475,7 @@ const Request = () => {
                   <div></div>
                   <div>
                     <Label htmlFor="eventStartDate" className="required">Event Start Date</Label>
-                    <DatePickerWithBookings value={formData.eventStartDate} onChange={date => handleEventStartChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={addDays(new Date(), 2)} placeholder="Select event start date" disabled={!formData.machineUnit} />
+                    <DatePickerWithBookings value={formData.eventStartDate} onChange={date => handleEventStartChange(date)} bookedPeriods={bookedPeriods} machineUnit={formData.machineUnit} minDate={addDays(new Date(), 1)} placeholder="Select event start date" disabled={!formData.machineUnit} />
                     
                   </div>
                   <div>
