@@ -437,7 +437,14 @@ const Request = () => {
                   </div>
                   <div>
                     <Label htmlFor="expectedUsers" className="required">Expected Number of Users</Label>
-                    <Input id="expectedUsers" type="number" value={formData.expectedUsers} onChange={e => updateField("expectedUsers", e.target.value)} required />
+                    <Input id="expectedUsers" type="number" min="1" value={formData.expectedUsers} onChange={e => {
+                      const val = e.target.value;
+                      updateField("expectedUsers", val);
+                      if (Number(val) < 50 && formData.machineUnit) {
+                        setFormData(prev => ({ ...prev, expectedUsers: val, machineUnit: "", eventStartDate: "", eventEndDate: "", pickupDate: "", returnDate: "" }));
+                        setDateConflictError(null);
+                      }
+                    }} required />
                   </div>
                 </div>
               </div>
@@ -461,7 +468,7 @@ const Request = () => {
                       returnDate: ""
                     }));
                     setDateConflictError(null);
-                  }}>
+                  }} disabled={!formData.expectedUsers || Number(formData.expectedUsers) < 50}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select machine unit" />
                       </SelectTrigger>
@@ -470,7 +477,11 @@ const Request = () => {
                         <SelectItem value="SCM-002-MDY">SCM-002-MDY</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">Select machine to see availability</p>
+                    {formData.expectedUsers && Number(formData.expectedUsers) < 50 ? (
+                      <p className="text-xs text-destructive mt-1">Minimum 50 expected users required to select a machine unit</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">Select machine to see availability</p>
+                    )}
                   </div>
                   <div></div>
                   <div>
