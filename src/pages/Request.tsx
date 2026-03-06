@@ -437,7 +437,14 @@ const Request = () => {
                   </div>
                   <div>
                     <Label htmlFor="expectedUsers" className="required">Expected Number of Users</Label>
-                    <Input id="expectedUsers" type="number" value={formData.expectedUsers} onChange={e => updateField("expectedUsers", e.target.value)} required />
+                    <Input id="expectedUsers" type="number" min="1" value={formData.expectedUsers} onChange={e => {
+                      const val = e.target.value;
+                      updateField("expectedUsers", val);
+                      if (Number(val) < 50 && formData.machineUnit) {
+                        setFormData(prev => ({ ...prev, expectedUsers: val, machineUnit: "", eventStartDate: "", eventEndDate: "", pickupDate: "", returnDate: "" }));
+                        setDateConflictError(null);
+                      }
+                    }} required />
                   </div>
                 </div>
               </div>
