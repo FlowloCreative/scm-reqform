@@ -141,7 +141,7 @@ const AdminDashboard = () => {
                             <span className="font-medium">Location:</span> {request.location}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            <span className="font-medium">Pickup:</span> {new Date(request.pickup_datetime).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })}
+                            <span className="font-medium">Pickup:</span> {new Date(request.pickup_datetime).toLocaleDateString('en-US', { timeZone: 'UTC', dateStyle: 'medium' })}
                           </p>
                         </div>
                         {isAdmin && (

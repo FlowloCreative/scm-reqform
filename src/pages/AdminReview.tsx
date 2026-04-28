@@ -60,16 +60,14 @@ const AdminReview = () => {
       } = await supabase.from("skin_check_requests").select("*").eq("request_id", id).single();
       if (error) throw error;
       setRequest(data);
-      // Format datetime for datetime-local input (YYYY-MM-DDTHH:MM)
-      const formatDateTimeForInput = (dateStr: string | null) => {
+      // Format datetime to date-only (YYYY-MM-DD) using UTC to avoid timezone shifts
+      const formatDateForInput = (dateStr: string | null) => {
         if (!dateStr) return "";
         const date = new Date(dateStr);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
       };
       
       setAdminData({
@@ -79,7 +77,7 @@ const AdminReview = () => {
         conditionPickup: data.condition_pickup || "",
         conditionReturn: data.condition_return || "",
         returnNotes: data.return_notes || "",
-        actualReturnDateTime: formatDateTimeForInput(data.actual_return_datetime)
+        actualReturnDateTime: formatDateForInput(data.actual_return_datetime)
       });
     } catch (error: any) {
       toast.error("Failed to load request");
@@ -100,7 +98,7 @@ const AdminReview = () => {
         condition_pickup: adminData.conditionPickup || null,
         condition_return: adminData.conditionReturn || null,
         return_notes: adminData.returnNotes || null,
-        actual_return_datetime: adminData.actualReturnDateTime || null
+        actual_return_datetime: adminData.actualReturnDateTime ? `${adminData.actualReturnDateTime}T00:00:00` : null
       }).eq("request_id", id);
       if (error) throw error;
 
@@ -207,11 +205,11 @@ const AdminReview = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label>Pickup</Label>
-                    <Input value={new Date(request.pickup_datetime).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })} disabled />
+                    <Input value={new Date(request.pickup_datetime).toLocaleDateString('en-US', { timeZone: 'UTC', dateStyle: 'medium' })} disabled />
                   </div>
                   <div>
                     <Label>Return</Label>
-                    <Input value={new Date(request.return_datetime).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })} disabled />
+                    <Input value={new Date(request.return_datetime).toLocaleDateString('en-US', { timeZone: 'UTC', dateStyle: 'medium' })} disabled />
                   </div>
                   <div>
                     <Label>Event Start</Label>
@@ -307,8 +305,8 @@ const AdminReview = () => {
               })} className="min-h-[100px]" />
               </div>
               <div>
-                <Label htmlFor="actualReturnDateTime">Actual Return Date & Time</Label>
-                <Input id="actualReturnDateTime" type="datetime-local" value={adminData.actualReturnDateTime} onChange={e => setAdminData({
+                <Label htmlFor="actualReturnDateTime">Actual Return Date</Label>
+                <Input id="actualReturnDateTime" type="date" value={adminData.actualReturnDateTime} onChange={e => setAdminData({
                 ...adminData,
                 actualReturnDateTime: e.target.value
               })} />
