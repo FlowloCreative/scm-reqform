@@ -38,9 +38,7 @@ const Request = () => {
     location: "",
     expectedUsers: "",
     pickupDate: "",
-    pickupTime: "09:00",
     returnDate: "",
-    returnTime: "16:00",
     eventStartDate: "",
     eventEndDate: "",
     machineUnit: "",
@@ -184,10 +182,9 @@ const Request = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Combine date and time for submission - store as-is without timezone offset
-    // This ensures database shows the exact time user selected (10:00 AM stored as 10:00)
-    const pickupDateTime = formData.pickupDate ? `${formData.pickupDate}T${formData.pickupTime}:00` : "";
-    const returnDateTime = formData.returnDate ? `${formData.returnDate}T${formData.returnTime}:00` : "";
+    // Date-only submission - store at midnight UTC so display stays as the selected date
+    const pickupDateTime = formData.pickupDate ? `${formData.pickupDate}T00:00:00` : "";
+    const returnDateTime = formData.returnDate ? `${formData.returnDate}T00:00:00` : "";
 
     // Validate date availability (already handled by checkDateConflicts)
     if (checkDateConflicts.hasConflict) {
@@ -352,9 +349,7 @@ const Request = () => {
                 location: "",
                 expectedUsers: "",
                 pickupDate: "",
-                pickupTime: "09:00",
                 returnDate: "",
-                returnTime: "16:00",
                 eventStartDate: "",
                 eventEndDate: "",
                 machineUnit: "",
@@ -504,48 +499,12 @@ const Request = () => {
                 {/* Auto-calculated pickup and return dates */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="pickupDate" className="required">Pickup Date & Time</Label>
-                    <div className="flex gap-2 flex-col sm:flex-row">
-                      <Input id="pickupDate" value={formData.pickupDate ? format(parseISO(formData.pickupDate), "PPP") : ""} placeholder="Auto-calculated from event start" disabled className={cn("bg-muted/50", dateConflictError && "border-destructive/50")} />
-                      <Select value={formData.pickupTime} onValueChange={time => updateField("pickupTime", time)} disabled={!formData.pickupDate}>
-                        <SelectTrigger className="w-full sm:w-[140px]">
-                          <SelectValue placeholder="Time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="09:00">9:00 AM</SelectItem>
-                          <SelectItem value="10:00">10:00 AM</SelectItem>
-                          <SelectItem value="11:00">11:00 AM</SelectItem>
-                          <SelectItem value="12:00">12:00 PM</SelectItem>
-                          <SelectItem value="13:00">1:00 PM</SelectItem>
-                          <SelectItem value="14:00">2:00 PM</SelectItem>
-                          <SelectItem value="15:00">3:00 PM</SelectItem>
-                          <SelectItem value="16:00">4:00 PM</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
+                    <Label htmlFor="pickupDate" className="required">Pickup Date</Label>
+                    <Input id="pickupDate" value={formData.pickupDate ? format(parseISO(formData.pickupDate), "PPP") : ""} placeholder="Auto-calculated from event start" disabled className={cn("bg-muted/50", dateConflictError && "border-destructive/50")} />
                   </div>
                   <div>
-                    <Label htmlFor="returnDate" className="required">Return Date & Time</Label>
-                    <div className="flex gap-2 flex-col sm:flex-row">
-                      <Input id="returnDate" value={formData.returnDate ? format(parseISO(formData.returnDate), "PPP") : ""} placeholder="Auto-calculated from event end" disabled className={cn("bg-muted/50", dateConflictError && "border-destructive/50")} />
-                      <Select value={formData.returnTime} onValueChange={time => updateField("returnTime", time)} disabled={!formData.returnDate}>
-                        <SelectTrigger className="w-full sm:w-[140px]">
-                          <SelectValue placeholder="Time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="09:00">9:00 AM</SelectItem>
-                          <SelectItem value="10:00">10:00 AM</SelectItem>
-                          <SelectItem value="11:00">11:00 AM</SelectItem>
-                          <SelectItem value="12:00">12:00 PM</SelectItem>
-                          <SelectItem value="13:00">1:00 PM</SelectItem>
-                          <SelectItem value="14:00">2:00 PM</SelectItem>
-                          <SelectItem value="15:00">3:00 PM</SelectItem>
-                          <SelectItem value="16:00">4:00 PM</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
+                    <Label htmlFor="returnDate" className="required">Return Date</Label>
+                    <Input id="returnDate" value={formData.returnDate ? format(parseISO(formData.returnDate), "PPP") : ""} placeholder="Auto-calculated from event end" disabled className={cn("bg-muted/50", dateConflictError && "border-destructive/50")} />
                   </div>
                 </div>
               </div>
