@@ -15,8 +15,8 @@ const updateSchema = z.object({
   adminNotes: z.string().max(1000).optional(),
   conditionPickup: z.enum(["Good", "Minor Issues", "Damaged"]).optional().nullable(),
   conditionReturn: z.enum(["Good", "Minor Issues", "Damaged"]).optional().nullable(),
-  returnNotes: z.string().max(1000).optional(),
-  actualReturnDateTime: z.string().optional(),
+  returnNotes: z.string().max(1000).optional().nullable(),
+  actualReturnDateTime: z.string().optional().nullable(),
 });
 
 const handler = async (req: Request): Promise<Response> => {
