@@ -71,6 +71,23 @@ const Auth = () => {
       setLoading(false);
     }
   };
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/request`,
+      });
+      if (result.error) {
+        toast.error(result.error.message);
+        return;
+      }
+      if (result.redirected) return;
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   return <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
       <Card className="w-full max-w-md glass-effect shadow-2xl">
         <CardHeader className="space-y-1 text-center">
