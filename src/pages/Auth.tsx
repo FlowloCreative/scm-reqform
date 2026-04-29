@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +71,23 @@ const Auth = () => {
       setLoading(false);
     }
   };
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: `${window.location.origin}/request`,
+      });
+      if (result.error) {
+        toast.error(result.error.message);
+        return;
+      }
+      if (result.redirected) return;
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   return <div className="min-h-screen gradient-bg flex items-center justify-center p-4">
       <Card className="w-full max-w-md glass-effect shadow-2xl">
         <CardHeader className="space-y-1 text-center">
@@ -101,6 +119,13 @@ const Auth = () => {
               {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
             </Button>
           </form>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or</span></div>
+          </div>
+          <Button type="button" variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={loading}>
+            Continue with Google
+          </Button>
           <div className="mt-4 text-center text-sm">
             <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline font-medium">
               {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
