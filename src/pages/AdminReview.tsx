@@ -98,7 +98,7 @@ const AdminReview = () => {
         condition_pickup: adminData.conditionPickup || null,
         condition_return: adminData.conditionReturn || null,
         return_notes: adminData.returnNotes || null,
-        actual_return_datetime: adminData.actualReturnDateTime ? `${adminData.actualReturnDateTime}T00:00:00` : null
+        actual_return_datetime: adminData.actualReturnDateTime || null
       }).eq("request_id", id);
       if (error) throw error;
 
