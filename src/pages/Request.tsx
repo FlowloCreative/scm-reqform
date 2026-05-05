@@ -182,9 +182,9 @@ const Request = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Date-only submission - store at midnight UTC so display stays as the selected date
-    const pickupDateTime = formData.pickupDate ? `${formData.pickupDate}T00:00:00` : "";
-    const returnDateTime = formData.returnDate ? `${formData.returnDate}T00:00:00` : "";
+    // Date-only submission (columns are DATE type)
+    const pickupDateTime = formData.pickupDate || "";
+    const returnDateTime = formData.returnDate || "";
 
     // Validate date availability (already handled by checkDateConflicts)
     if (checkDateConflicts.hasConflict) {
