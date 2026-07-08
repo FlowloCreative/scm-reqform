@@ -92,6 +92,33 @@ const handler = async (req: Request): Promise<Response> => {
     const data = parseResult.data;
     console.log("Processing validated request:", data.requestId);
 
+    // Verify the request exists and belongs to the authenticated user.
+    // Use service role to bypass RLS for this ownership check.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: reqRow, error: reqErr } = await supabaseAdmin
+      .from("skin_check_requests")
+      .select("email, employee_name, created_by")
+      .eq("request_id", data.requestId)
+      .maybeSingle();
+    if (reqErr || !reqRow) {
+      return new Response(JSON.stringify({ error: "Request not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    if (reqRow.created_by !== authedUserId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    // Use verified email/name from DB, ignore client-supplied values for recipient
+    const verifiedEmail = reqRow.email;
+    const verifiedName = reqRow.employee_name;
+
     // Send email to admin
     const adminEmail = data.informTo === "YGN-Admin" ? "flowlocreative@gmail.com" : "drmozzgaming@gmail.com";
     
