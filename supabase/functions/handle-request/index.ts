@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -51,6 +52,28 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify JWT and get authenticated user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const token = authHeader.replace("Bearer ", "");
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+    );
+    const { data: userData, error: userErr } = await supabaseAuth.auth.getUser(token);
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    const authedUserId = userData.user.id;
+
     const rawData = await req.json();
     
     // Validate input data
@@ -68,6 +91,33 @@ const handler = async (req: Request): Promise<Response> => {
     
     const data = parseResult.data;
     console.log("Processing validated request:", data.requestId);
+
+    // Verify the request exists and belongs to the authenticated user.
+    // Use service role to bypass RLS for this ownership check.
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: reqRow, error: reqErr } = await supabaseAdmin
+      .from("skin_check_requests")
+      .select("email, employee_name, created_by")
+      .eq("request_id", data.requestId)
+      .maybeSingle();
+    if (reqErr || !reqRow) {
+      return new Response(JSON.stringify({ error: "Request not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    if (reqRow.created_by !== authedUserId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+    // Use verified email/name from DB, ignore client-supplied values for recipient
+    const verifiedEmail = reqRow.email;
+    const verifiedName = reqRow.employee_name;
 
     // Send email to admin
     const adminEmail = data.informTo === "YGN-Admin" ? "flowlocreative@gmail.com" : "drmozzgaming@gmail.com";
@@ -132,11 +182,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Send confirmation to requester
     await resend.emails.send({
       from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
-      to: [data.email],
+      to: [verifiedEmail],
       subject: `Request Confirmation: ${escapeHtml(data.requestId)}`,
       html: `
         <h1>Thank you for your request!</h1>
-        <p>Dear ${escapeHtml(data.employeeName)},</p>
+        <p>Dear ${escapeHtml(verifiedName)},</p>
         <p>Your skin check machine request has been received and is being reviewed.</p>
         
         <h3>Request Details</h3>
