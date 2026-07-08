@@ -182,11 +182,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Send confirmation to requester
     await resend.emails.send({
       from: "Skin Check Request <noreply@blueocean-fancyhouse.com>",
-      to: [data.email],
+      to: [verifiedEmail],
       subject: `Request Confirmation: ${escapeHtml(data.requestId)}`,
       html: `
         <h1>Thank you for your request!</h1>
-        <p>Dear ${escapeHtml(data.employeeName)},</p>
+        <p>Dear ${escapeHtml(verifiedName)},</p>
         <p>Your skin check machine request has been received and is being reviewed.</p>
         
         <h3>Request Details</h3>
