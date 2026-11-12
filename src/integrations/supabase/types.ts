@@ -160,13 +160,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_my_request: { Args: { p_id: string }; Returns: undefined }
       get_booking_periods: {
         Args: { p_machine_unit?: string }
         Returns: {
+          employee_name: string
           event_end_date: string
+          event_name: string
           event_start_date: string
+          location: string
           machine_unit: string
+          phone_number: string
           pickup_datetime: string
+          position: string
           return_datetime: string
         }[]
       }
