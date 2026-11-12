@@ -78,7 +78,7 @@ const AdminDashboard = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive"> = {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       Pending: "secondary",
       Approved: "default",
       Rejected: "destructive",
