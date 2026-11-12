@@ -19,6 +19,13 @@ interface BookedPeriod {
   pickup_datetime: string;
   return_datetime: string;
   machine_unit: string;
+  event_start_date?: string;
+  event_end_date?: string;
+  employee_name?: string;
+  position?: string;
+  phone_number?: string;
+  event_name?: string;
+  location?: string;
 }
 const Request = () => {
   const navigate = useNavigate();
@@ -90,15 +97,11 @@ const Request = () => {
         data
       } = await supabase.rpc("get_booking_periods");
       if (data) {
-        setBookedPeriods(data.map((d: any) => ({
-          pickup_datetime: d.pickup_datetime,
-          return_datetime: d.return_datetime,
-          machine_unit: d.machine_unit
-        })));
+        setBookedPeriods(data as BookedPeriod[]);
       }
     };
     fetchBookedPeriods();
-  }, []);
+  }, [user]);
 
   // Calculate pickup date (Event Start - 1 day, skip to previous working day)
   const calculatedPickupDate = useMemo(() => {
@@ -375,6 +378,9 @@ const Request = () => {
         <Card className="glass-effect shadow-2xl">
           <CardHeader className="border-b border-primary/20 pb-6">
             <div className="flex justify-between items-start mb-4">
+              <Button variant="outline" size="sm" onClick={() => navigate("/my-requests")} className="order-last ml-auto mr-2">
+                My Requests
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Home

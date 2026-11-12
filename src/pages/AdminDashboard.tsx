@@ -82,6 +82,7 @@ const AdminDashboard = () => {
       Pending: "secondary",
       Approved: "default",
       Rejected: "destructive",
+      Cancelled: "outline",
     };
     return <Badge variant={variants[status] || "default"}>{status}</Badge>;
   };
