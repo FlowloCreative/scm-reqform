@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminReview from "./pages/AdminReview";
+import MyRequests from "./pages/MyRequests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/request" element={<Request />} />
+          <Route path="/my-requests" element={<MyRequests />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />

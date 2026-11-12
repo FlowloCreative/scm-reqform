@@ -12,6 +12,13 @@ interface BookedPeriod {
   pickup_datetime: string;
   return_datetime: string;
   machine_unit: string;
+  event_start_date?: string;
+  event_end_date?: string;
+  employee_name?: string;
+  position?: string;
+  phone_number?: string;
+  event_name?: string;
+  location?: string;
 }
 interface DatePickerWithBookingsProps {
   value: string;
@@ -77,9 +84,10 @@ export function DatePickerWithBookings({
   const getInfoForDate = (date: Date): string | null => {
     const booking = getBookingForDate(date);
     if (booking) {
-      const pickupDate = format(parseISO(booking.pickup_datetime), "MMM d");
-      const returnDate = format(parseISO(booking.return_datetime), "MMM d");
-      return `Booked: ${pickupDate} - ${returnDate}`;
+      const pickupDate = format(parseISO(booking.pickup_datetime), "MMM d, yyyy");
+      const returnDate = format(parseISO(booking.return_datetime), "MMM d, yyyy");
+      if (!booking.employee_name) return `Booked: ${pickupDate} - ${returnDate}`;
+      return `${booking.employee_name} (Name), ${booking.position} (Position), ${booking.phone_number} (Phone)\nEvent Details\n${booking.event_name} (Event), ${booking.location} (Location),\n${booking.event_start_date} to ${booking.event_end_date} (Event Date). Pickup on ${pickupDate} (Pickup date) and return on ${returnDate} (Return date)`;
     }
     if ((excludeWeekends || excludeHolidays) && isOfficialOffDay(date)) {
       return getOffDayReason(date);
@@ -159,7 +167,7 @@ export function DatePickerWithBookings({
         }} />
           
           {selectedInfo && <div className="px-3 pb-2">
-              <div className="flex items-center gap-2 text-xs bg-muted/50 text-muted-foreground p-2 rounded">
+              <div className="flex items-start gap-2 text-xs bg-muted/50 max-w-[280px] whitespace-pre-line text-muted-foreground p-2 rounded">
                 <Info className="h-3 w-3 flex-shrink-0" />
                 <span>{selectedInfo}</span>
               </div>
