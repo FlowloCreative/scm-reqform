@@ -76,10 +76,8 @@ export function DatePickerWithBookings({
     const checkDate = startOfDay(date);
     if (minDate && isBefore(checkDate, startOfDay(minDate))) return true;
     if (maxDate && isBefore(startOfDay(maxDate), checkDate)) return true;
-    if ((excludeWeekends || excludeHolidays) && isOfficialOffDay(date)) {
-      return true;
-    }
-    return isDateBooked(date);
+    // Booked and off days stay clickable so touch users can read their details.
+    return false;
   };
   const getInfoForDate = (date: Date): string | null => {
     const booking = getBookingForDate(date);
@@ -97,11 +95,12 @@ export function DatePickerWithBookings({
   const handleDayClick = (date: Date, modifiers: {
     disabled?: boolean;
   }) => {
-    if (modifiers.disabled) {
+    if (isDateBooked(date) || ((excludeWeekends || excludeHolidays) && isOfficialOffDay(date))) {
       const info = getInfoForDate(date);
       setSelectedInfo(info);
       return;
     }
+    if (modifiers.disabled) return;
     setSelectedInfo(null);
     onChange(format(date, "yyyy-MM-dd"));
     if (!showTime) {
@@ -174,10 +173,10 @@ export function DatePickerWithBookings({
             </div>}
           
           <div className="p-3 border-t text-xs text-muted-foreground space-y-1">
-            <p className="text-[10px] italic mb-2">Tap disabled dates to see why</p>
+            <p className="text-[10px] italic mb-2">Tap a booked date to see its event schedule</p>
             {machineUnit && <div className="flex items-center gap-2">
                 <span className="inline-block w-3 h-3 rounded bg-destructive/15"></span>
-                <span>Already booked for {machineUnit}</span>
+                <span>Booked for {machineUnit}</span>
               </div>}
             {(excludeWeekends || excludeHolidays) && <div className="flex items-center gap-2">
                 <span className="inline-block w-3 h-3 rounded bg-muted/50"></span>
